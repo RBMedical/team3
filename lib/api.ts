@@ -1,5 +1,5 @@
 const APP_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbz84ZRgh1FQFlW0J2hHJz4zwn92pJuIby8OVaHjqDxpsQiDuQT6Nl1Ni8srCNg26KdO8w/exec";
+  "https://script.google.com/macros/s/AKfycbzjiu_OfIQhIqLLIqkcKcy26hRkhaU6QFV3GdcLd3WOppjGMy65aM-JvmuL3oj3QZ1hOw/exec";
 
 export function appScriptRequest<T = Record<string, unknown>>(
   params: Record<string, string | number>
