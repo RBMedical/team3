@@ -34,9 +34,10 @@ const FIELDS: (keyof EmployeeRow)[] = [
 
 interface Props {
   onCountsUpdate: (counts: Record<string, number>) => void;
+  onOpenPersonal?: (hn: string) => void;
 }
 
-export function RegistrationPage({ onCountsUpdate }: Props) {
+export function RegistrationPage({ onCountsUpdate, onOpenPersonal }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<EmployeeRow[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -476,6 +477,11 @@ ${stickerHTML}
             onClick={() => currentRow && setEditModal(true)}
             style={{ flex: 1, height: "var(--btn-h)", borderRadius: 7, border: "1px solid #cfd9e5", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, fontSize: "var(--fs-base)", fontWeight: 600, whiteSpace: "nowrap" }}>
             <Pencil size={14} />แก้ไข
+          </button>
+          <button
+            onClick={() => currentRow?.HN && onOpenPersonal?.(currentRow.HN)}
+            style={{ flex: 1, height: "var(--btn-h)", borderRadius: 7, border: "1px solid #bee1e8", background: "#e8f7fa", color: "#0c6075", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, fontSize: "var(--fs-base)", fontWeight: 600, whiteSpace: "nowrap" }}>
+            <UserCheck size={14} />Personal
           </button>
           <button
             onClick={() => currentRow && setDeleteDialog(true)}
