@@ -92,7 +92,7 @@ export default function Home() {
         <header className="page-header">
           <div>
             <h1>ระบบลงทะเบียน</h1>
-            <p>Team 1</p>
+            <p>Team 3</p>
           </div>
           <div
             className="status-pill"
