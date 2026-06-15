@@ -2,17 +2,20 @@
 
 import React, { useState } from "react";
 import {
-  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital,
+  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User,
 } from "lucide-react";
 import { RegistrationPage } from "@/components/RegistrationPage";
 import { ReportPage } from "@/components/ReportPage";
 import { SpecimenModal } from "@/components/SpecimenModal";
+import { PersonalDetailModal } from "@/components/PersonalDetailModal";
 
 type Page = "registration" | "report";
 
 export default function Home() {
   const [activePage, setActivePage] = useState<Page>("registration");
   const [specimenOpen, setSpecimenOpen] = useState(false);
+  const [personalOpen, setPersonalOpen] = useState(false);
+  const [personalHn, setPersonalHn] = useState("");
   const [statusMsg, setStatusMsg] = useState("พร้อมใช้งาน");
   const [statusOk, setStatusOk] = useState(true);
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -20,9 +23,17 @@ export default function Home() {
   function handleNav(page: string) {
     if (page === "specimen") {
       setSpecimenOpen(true);
+    } else if (page === "personal") {
+      // เปิด Personal โดยใช้ HN จาก search ถ้ามี
+      setPersonalOpen(true);
     } else {
       setActivePage(page as Page);
     }
+  }
+
+  function openPersonalByHn(hn: string) {
+    setPersonalHn(hn);
+    setPersonalOpen(true);
   }
 
   return (
@@ -55,6 +66,13 @@ export default function Home() {
             <span>นับสิ่งตรวจ</span>
           </button>
           <button
+            className="menu-item"
+            onClick={() => handleNav("personal")}
+          >
+            <User size={16} />
+            <span>Personal</span>
+          </button>
+          <button
             className={`menu-item${activePage === "report" ? " active" : ""}`}
             onClick={() => handleNav("report")}
           >
@@ -74,7 +92,7 @@ export default function Home() {
         <header className="page-header">
           <div>
             <h1>ระบบลงทะเบียน</h1>
-            <p>Team 3</p>
+            <p>Team 1</p>
           </div>
           <div
             className="status-pill"
@@ -86,7 +104,7 @@ export default function Home() {
 
         {/* Registration Page */}
         <section className={`workspace page${activePage === "registration" ? " active" : ""}`} id="registrationPage">
-          <RegistrationPage onCountsUpdate={setCounts} />
+          <RegistrationPage onCountsUpdate={setCounts} onOpenPersonal={openPersonalByHn} />
         </section>
 
         {/* Report Page */}
@@ -95,6 +113,13 @@ export default function Home() {
           <ReportPage />
         </section>
       </main>
+
+      {/* Personal Detail Modal */}
+      <PersonalDetailModal
+        open={personalOpen}
+        initialHn={personalHn}
+        onClose={() => setPersonalOpen(false)}
+      />
 
       {/* Specimen Modal */}
       <SpecimenModal
