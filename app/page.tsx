@@ -339,7 +339,7 @@ export default function Home() {
       <main className="app-shell">
         <header className="page-header">
           <div>
-            <h1>ระบบลงทะเบียน(Team 2)</h1>
+            <h1>ระบบลงทะเบียน (Team 1)</h1>
             <p>{detailName ? ` · ${detailName}` : ""}</p>
           </div>
           <div
