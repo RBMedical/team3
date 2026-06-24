@@ -1865,8 +1865,8 @@ button.add-new:hover {
   .sticker-bottom-row { flex: 1 !important; display: flex !important; align-items: stretch !important; overflow: hidden !important; }
   .sticker-specimen { width: 14mm !important; min-width: 14mm !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 4mm !important; font-weight: 900 !important; color: #000 !important; white-space: nowrap !important; padding: 0 0.5mm !important; }
   .sticker-right-col { flex: 1 !important; display: flex !important; flex-direction: column !important; justify-content: center !important; padding: 0.3mm 0.8mm !important; gap: 0.3mm !important; align-items: flex-end !important; text-align: right !important; }
-  .sticker-customer { font-size: 2mm !important; color: #0f0f0f !important; white-space: nowrap !important; }
-  .sticker-date     { font-size: 2mm !important; color: #131313 !important; white-space: nowrap !important; }
+  .sticker-customer { font-size: 2.5mm !important; color: #0f0f0f !important; white-space: nowrap !important; }
+  .sticker-date     { font-size: 2.5mm !important; color: #131313 !important; white-space: nowrap !important; }
 }
 
 @keyframes pulse {
