@@ -794,7 +794,7 @@ button.add-new:hover {
   justify-content: center;
   height: 100%;
   padding: 0 10px;
-  border-radius: 999px;
+  border-radius: 5px;
   background: linear-gradient(#fbfcfd, #e8eef2);
   border: 1px solid #d3dde4;
   color: var(--ink);
