@@ -541,6 +541,7 @@
   min-width: 0;
   width: 100%;
   transition: border-color 0.15s;
+  text-align: right;
 }
 
 .field input:focus {
