@@ -477,6 +477,13 @@
   overflow-x: hidden;
   padding: 10px 10px 10px;
   align-content: start;
+  background-color:#e0f2f1;
+  border-radius:10px;
+  margin-top: 5px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 20px;
+
 }
 
 /* Column spans for the 4-col form (matches reference layout) */
@@ -495,6 +502,7 @@
   border-radius: 0;
   overflow: visible;
   height: auto;
+  min-height: 20px;
   padding-bottom: 1px;
   transition: none;
 }
@@ -520,8 +528,7 @@
 }
 
 .field input {
-  height: calc(var(--input-h) - 2px);
-  min-height: 30px;
+  height: calc(var(--input-h) - 3px);
   border: none;
   border-bottom: 1.5px solid #c8d8e4;
   border-radius: 0;
