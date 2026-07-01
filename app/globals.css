@@ -520,7 +520,7 @@
 }
 
 .field input {
-  height: calc(var(--input-h) - 4px);
+  height: calc(var(--input-h) - 2px);
   border: none;
   border-bottom: 1.5px solid #c8d8e4;
   border-radius: 0;
