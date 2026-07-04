@@ -263,6 +263,7 @@
   font-weight: 500;
   text-align: left;
   transition: background 0.15s, color 0.15s;
+  font-weight: 900;
 }
 
 .menu-item:hover {
@@ -271,8 +272,8 @@
 }
 
 .menu-item.active {
-  background: #e8f7fa;
-  color: var(--teal);
+  background: #009999;
+  color: #ffff;
 }
 
 .menu-item svg {
