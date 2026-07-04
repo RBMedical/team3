@@ -186,7 +186,7 @@
   padding: 16px 12px;
   overflow: hidden;
   color: var(--ink);
-  background: #fff;
+  background: #ADD8E6;
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -266,8 +266,8 @@
 }
 
 .menu-item:hover {
-  background: var(--soft);
-  color: var(--teal);
+  background: #009999;
+  color: #ffff;
 }
 
 .menu-item.active {
@@ -496,7 +496,7 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 1;
   min-width: 0;
   border: none;
   border-radius: 0;
@@ -505,6 +505,7 @@
   min-height: 20px;
   padding-bottom: 1px;
   transition: none;
+ 
 }
 
 .field:focus-within {
@@ -513,7 +514,7 @@
 
 .field label {
   display: block;
-  font-size: var(--fs-label);
+  font-size: 8px;
   font-weight: 700;
   color: #5a7888;
   text-transform: none;
@@ -542,6 +543,7 @@
   width: 100%;
   transition: border-color 0.15s;
   text-align: right;
+
 }
 
 .field input:focus {
