@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <link rel="stylesheet" href="transition.css">
+  <script src="AppScript.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mobile Checkup">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="/manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body>
+  <style>
+  html, body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background-image: url("pic/back.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+      font-family: Sarabun, sans-serif;
+    
+      min-height: 100vh;
+    }
+
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      padding: 28px;
+    }
+
+    .login-title {
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .helper-text {
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .loading-box {
+      display: none;
+      text-align: center;
+      margin-top: 12px;
+      color: #0d6efd;
+      font-size: 0.95rem;
+    }
+
+    .mobile-warning {
+      display: none;
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 18px;
+      border-radius: 12px;
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffe69c;
+      text-align: center;
+    }
+
+    @media (max-width: 576px) {
+      .login-card {
+        display: none;
+      }
+
+      .mobile-warning {
+        display: block;
+      }
+    }
+  </style>
+
+
+
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-title">เข้าสู่ระบบ</div>
+      <div class="helper-text">กรุณาเลือกชื่อผู้ใช้และกรอกรหัสผ่าน</div>
+
+      <div class="mb-3">
+        <label for="dynamicDropdown" class="form-label">Username</label>
+        <select class="form-select" id="dynamicDropdown">
+          <option value="">กำลังโหลดข้อมูล...</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="floatingPassword" class="form-label">Password</label>
+        <input type="password" class="form-control text-center" id="floatingPassword" placeholder="Password">
+      </div>
+
+      <button type="button" class="btn btn-primary w-100" onclick="checkCredentials()">Sign in</button>
+      <a href="index.html" class="btn btn-outline-secondary w-100 mt-2">ปิด</a>
+
+      <div id="loadingBox" class="loading-box">กำลังตรวจสอบข้อมูล...</div>
+    </div>
+  </div>
+
+  <div class="mobile-warning">
+    This device not support, Open this page on PC.
+  </div>
+
+ <script>
+function showLoading(message = "กำลังโหลดข้อมูล...") {
+    const box = document.getElementById("loadingBox");
+    if (box) {
+      box.innerText = message;
+      box.style.display = "block";
+    }
+  }
+
+  function hideLoading() {
+    const box = document.getElementById("loadingBox");
+    if (box) {
+      box.style.display = "none";
+    }
+  }
+
+  function fetchJson(url) {
+    return fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("HTTP error: " + response.status);
+        }
+        return response.json();
+      });
+  }
+
+  function loadDropdownData() {
+  showLoading("กำลังโหลดรายชื่อผู้ใช้...");
+
+  fetchJson(BASE_URL + "?app=spe&type=userdetail")
+    .then(data => {
+      const dropdown = document.getElementById("dynamicDropdown");
+      dropdown.innerHTML = "";
+
+      if (!Array.isArray(data) || data.length === 0) {
+        dropdown.innerHTML = `<option value="">ไม่พบข้อมูล</option>`;
+        hideLoading();
+        return;
+      }
+
+      data.forEach(row => {
+
+        const username = String(row.username || "").trim();
+        const type = String(row.type || "").trim();
+
+        // 🔥 โหลดเฉพาะ type = B
+        if (username !== "" && type === "B") {
+
+          const option = document.createElement("option");
+
+          option.value = username;
+          option.textContent = username;
+
+          dropdown.appendChild(option);
+        }
+      });
+
+      if (dropdown.options.length === 0) {
+        dropdown.innerHTML = `<option value="">ไม่พบข้อมูล</option>`;
+      }
+
+      hideLoading();
+    })
+    .catch(error => {
+
+      console.error("Error fetching userdetail:", error);
+
+      const dropdown = document.getElementById("dynamicDropdown");
+
+      if (dropdown) {
+        dropdown.innerHTML = `<option value="">โหลดข้อมูลไม่สำเร็จ</option>`;
+      }
+
+      hideLoading();
+
+      alert("เกิดข้อผิดพลาดในการโหลดข้อมูลผู้ใช้");
+    });
+}
+
+  function checkCredentials() {
+    const dropdown = document.getElementById("dynamicDropdown");
+    const passwordField = document.getElementById("floatingPassword");
+
+    const selectedValue = String(dropdown?.value || "").trim();   // UserDetail[1] = Main[67]
+    const passwordInput = String(passwordField?.value || "").trim();
+
+    if (!selectedValue) {
+      alert("กรุณาเลือก Username");
+      return;
+    }
+
+    if (!passwordInput) {
+      alert("กรุณากรอก Password");
+      return;
+    }
+
+    showLoading("กำลังตรวจสอบข้อมูล...");
+
+    fetchJson(BASE_URL + "?app=spe&type=userdetail")
+      .then(users => {
+        if (!Array.isArray(users)) {
+          throw new Error("รูปแบบข้อมูลผู้ใช้ไม่ถูกต้อง");
+        }
+
+        const user = users.find(row =>
+          String(row.username || "").trim() === selectedValue &&
+          String(row.password || "").trim() === passwordInput
+        );
+
+        if (!user) {
+          hideLoading();
+          alert("Wrong Username or Password! Please try again.");
+          return;
+        }
+
+        // selectedValue = UserDetail[1] และต้องตรงกับ Main[67]
+        localStorage.setItem("selectedCustomer", selectedValue);
+        localStorage.setItem("selectedDropdownValue", selectedValue);
+        localStorage.setItem("fullname", String(user.fullname || "").trim());
+        hideLoading();
+        window.location.href = "checkup.html";
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        hideLoading();
+        alert("Error connecting to the server. Please try again later.");
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", loadDropdownData);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+/* ==========================================================================
+   transition.css — เปิดใช้งาน Cross-Document View Transition ทั้งเว็บไซต์
+   ทุกหน้า HTML ต้อง <link rel="stylesheet" href="transition.css"> เหมือนกัน
+   ถึงจะเกิด transition ตอนเปลี่ยนหน้า (ต้องมีทั้งฝั่งต้นทางและปลายทาง)
+
+   รองรับ: Chrome/Edge 126+, Safari 18.2+
+   เบราว์เซอร์ที่ยังไม่รองรับ (เช่น Firefox บางเวอร์ชัน) จะ fallback
+   ไปเปลี่ยนหน้าแบบปกติทันที ไม่กระทบการใช้งานใดๆ
+   ========================================================================== */
+
+@view-transition {
+  navigation: auto;
+}
+
+/* ระยะเวลา + ลักษณะ cross-fade เริ่มต้น (ปรับได้ตามชอบ) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+  animation-timing-function: ease-out;
+}
+
+/* เคารพผู้ใช้ที่ตั้งค่าลดการเคลื่อนไหว (accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}

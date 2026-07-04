@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <link rel="stylesheet" href="transition.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rb Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+    crossorigin="anonymous"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+ 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<link rel="stylesheet" href="Dashboard.css">
+</head>
+
+<body>
+<div class="container"> 
+  <div class="container-lg">
+    <header class="d-flex flex-wrap align-items-center justify-content-between py-3 mb-4 border-bottom nav-container container">
+           
+       
+      <div class="collapse navbar-collapse d-md-flex justify-content-between" id="navbarNav">
+        <h1 class="fw-bold" style="font-family: sarabun; color:darkgreen">R&B Work Space</h1>
+          <ul class="nav nav-pills">
+             <li class="nav-item"><a href="login.html">Log Out</a></li>
+            
+                      
+          </ul>
+      </div>
+  </header>
+  <div class="b-example-divider" style="justify-content: center;"></div>
+  <div class="container-sm"> 
+   <div class="row mt-1">
+    
+       
+
+        <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary" style="width: 280px;">
+          <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+            <svg class="bi pe-none me-2" width="40" height="32" aria-hidden="true"><use xlink:href="#bootstrap"/></svg>
+            <span class="fs-5 fw-bold" style="font-family: sarabun; color:darkgreen;">สมรรถภาพแรงบีบมือ</span>
+          </a>
+          <hr>
+          <ul class="nav nav-pills flex-column mb-auto" >
+            <li class="nav-item" style="font-family: sarabun;">
+              <a href="admin.html" class="nav-link  link-body-emphasis fw-bold   ">
+                <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true"><use xlink:href="admin.html"/></svg>
+                BMI Calculater
+              </a>
+            </li>
+            <li>
+              <a href="Dashboard.html" class="nav-link current" >
+                <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true"><use xlink:href="Dashboard.html"/></svg>
+                Grip Strenght.
+              </a>
+            </li>
+            <li>
+              <a href="legs.html" class="nav-link link-body-emphasis fw-bold">
+                <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true"><use xlink:href="legs.html"/></svg>
+                Legs Strenght.
+              </a>
+            </li>
+            <li>
+              <a href="backtest.html" class="nav-link link-body-emphasis fw-bold">
+                <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true"><use xlink:href="backtest.html"/></svg>
+                Back Strenght.
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-link link-body-emphasis fw-bold">
+                <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true"><use xlink:href="#"/></svg>
+                
+              </a>
+            </li>
+          </ul>
+          <hr>
+         
+        </div>
+        <div class="b-example-divider b-example-vr"></div>
+
+   
+     <div class="col-9 ms-1 mt-5">
+        <div style="font-family: sarabun; display: flex;">
+
+          <div class="col-3 ms-3 mb-5">
+            <label for="fileInput">อัพโหลดไฟล์</label>
+            <input class="form-control form-control-sm mt-1" type="file" id="fileInput" accept=".xlsx, .xls">
+          </div>
+
+          <div class="col-6  mt-4">
+            <button id="importBtn" onclick ="processExcel()" class="btn btn-secondary ms-1 py-1">Import</button>
+          </div>
+  <div class="col-2  mt-4">
+    <div class="btn-group ms-4">
+          <button id="downloadExcel" class="btn btn-outline-secondary">Download Excel</button>
+             
+          <button id="downloadPDF" class="btn btn-outline-secondary">Download PDF</button>
+      </div>
+          </div>
+        </div>
+
+
+        <!-- Data Table -->
+     <div class="table-wrapper">
+            <table id="dataTable" class="fl-table">
+              <thead>
+                <tr>
+                  <th>ลำดับ</th>
+                  <th>รหัส</th>
+                  <th>ชื่อ นามสกุล</th>
+                  <th>เพศ</th>
+                  <th>อายุ</th>
+                  <th>น้ำหนัก</th>
+                  <th>ค่าทดสอบ</th>
+                  <th>ค่าทดสอบ</th>
+                  <th>การประเมิน</th>
+                  <th>ผลสรุป</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+   
+  
+
+</div>
+</div>
+<script>
+   function processExcel() {
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert("กรุณาเลือกไฟล์ Excel ก่อน");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      const tableBody = document.querySelector("#dataTable tbody");
+      tableBody.innerHTML = "";
+
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+
+        const no = row[0] || "";
+        const regId = row[1] || "";
+        const name = row[2] || "";
+        const gender = row[3] || "";
+        const age = parseInt(row[4]) || "";
+        const weight = parseFloat(row[5]) || "";
+        const testValue = parseFloat(row[6]) || "";
+
+        // H = weight / testValue
+        let H = "";
+        if (!isNaN(weight) && !isNaN(testValue) && testValue !== 0) {
+          H = parseFloat((weight / testValue).toFixed(2));
+        }
+
+        // I = การประเมิน
+        let I = "";
+        if (!isNaN(H)) {
+          if (gender === "ชาย") {
+            if (age >= 10 && age <= 12) I = H <= 0.43 ? "ผิดปกติ" : "ปกติ";
+            else if (age >= 13 && age <= 16) I = H <= 0.62 ? "ผิดปกติ" : "ปกติ";
+            else if (age >= 17 && age <= 19) I = H <= 0.70 ? "ผิดปกติ" : "ปกติ";
+            else if (age >= 20 && age <= 30) I = H <= 0.67 ? "ผิดปกติ" : "ปกติ";
+            else if (age >= 31 && age <= 40) I = H <= 0.73 ? "ผิดปกติ" : "ปกติ";
+            else if (age >= 41 && age <= 50) I = H <= 0.55 ? "ผิดปกติ" : "ปกติ";
+            else if (age > 50) I = H <= 0.51 ? "ผิดปกติ" : "ปกติ";
+          } else if (gender === "หญิง") {
+            if (age >= 10 && age <= 12) I = H <= 0.31 ? "ผิดปกติ" : "ปกติ";
+            else if (age >= 13 && age <= 16) I = H <= 0.47 ? "ผิดปกติ" : "ปกติ";
+            else if (age >= 17 && age <= 19) I = H <= 0.51 ? "ผิดปกติ" : "ปกติ";
+            else if (age >= 20 && age <= 30) I = H <= 0.44 ? "ผิดปกติ" : "ปกติ";
+            else if (age >= 31 && age <= 40) I = H <= 0.42 ? "ผิดปกติ" : "ปกติ";
+            else if (age >= 41 && age <= 50) I = H <= 0.34 ? "ผิดปกติ" : "ปกติ";
+            else if (age > 50) I = H <= 0.31 ? "ผิดปกติ" : "ปกติ";
+          }
+        }
+
+        // J = ผลสรุป
+        let J = "";
+        if (!isNaN(H)) {
+          if (gender === "ชาย") {
+            if (age >= 16 && age <= 20) {
+              if (H <= 0.65) J = "ต่ำ";
+              else if (H <= 0.70) J = "ค่อนข้างต่ำ";
+              else if (H <= 0.83) J = "พอใช้";
+              else if (H <= 0.89) J = "ดี";
+              else J = "ดีมาก";
+            } else if (age >= 21 && age <= 30) {
+              if (H <= 0.53) J = "ต่ำ";
+              else if (H <= 0.66) J = "ค่อนข้างต่ำ";
+              else if (H <= 0.82) J = "พอใช้";
+              else if (H <= 0.88) J = "ดี";
+              else J = "ดีมาก";
+            } else if (age >= 31 && age <= 40) {
+              if (H <= 0.53) J = "ต่ำ";
+              else if (H <= 0.59) J = "ค่อนข้างต่ำ";
+              else if (H <= 0.73) J = "พอใช้";
+              else if (H <= 0.80) J = "ดี";
+              else J = "ดีมาก";
+            } else if (age >= 41 && age <= 50) {
+              if (H <= 0.50) J = "ต่ำ";
+              else if (H <= 0.55) J = "ค่อนข้างต่ำ";
+              else if (H <= 0.65) J = "พอใช้";
+              else if (H <= 0.63) J = "ดี";
+              else J = "ดีมาก";
+            } else if (age > 50) {
+              if (H <= 0.46) J = "ต่ำ";
+              else if (H <= 0.51) J = "ค่อนข้างต่ำ";
+              else if (H <= 0.61) J = "พอใช้";
+              else if (H <= 0.66) J = "ดี";
+              else J = "ดีมาก";
+            }
+          } else if (gender === "หญิง") {
+            if (age >= 16 && age <= 20) {
+              if (H <= 0.47) J = "ต่ำ";
+              else if (H <= 0.51) J = "ค่อนข้างต่ำ";
+              else if (H <= 0.62) J = "พอใช้";
+              else if (H <= 0.66) J = "ดี";
+              else J = "ดีมาก";
+            } else if (age >= 21 && age <= 30) {
+              if (H <= 0.38) J = "ต่ำ";
+              else if (H <= 0.44) J = "ค่อนข้างต่ำ";
+              else if (H <= 0.58) J = "พอใช้";
+              else if (H <= 0.64) J = "ดี";
+              else J = "ดีมาก";
+            } else if (age >= 31 && age <= 40) {
+              if (H <= 0.38) J = "ต่ำ";
+              else if (H <= 0.42) J = "ค่อนข้างต่ำ";
+              else if (H <= 0.50) J = "พอใช้";
+              else if (H <= 0.54) J = "ดี";
+              else J = "ดีมาก";
+            } else if (age >= 41 && age <= 50) {
+              if (H <= 0.29) J = "ต่ำ";
+              else if (H <= 0.34) J = "ค่อนข้างต่ำ";
+              else if (H <= 0.46) J = "พอใช้";
+              else if (H <= 0.51) J = "ดี";
+              else J = "ดีมาก";
+            } else if (age > 50) {
+              if (H <= 0.28) J = "ต่ำ";
+              else if (H <= 0.31) J = "ค่อนข้างต่ำ";
+              else if (H <= 0.39) J = "พอใช้";
+              else if (H <= 0.42) J = "ดี";
+              else J = "ดีมาก";
+            }
+          }
+        }
+
+        // แสดงผลในตารางด้วย innerHTML
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+           <td>${no}</td>
+  <td>${regId}</td>
+  <td style="text-align: left;">${name}</td>
+  <td>${gender}</td>
+  <td>${age}</td>
+  <td>${weight}</td>
+  <td>${testValue}</td>         <!-- G -->
+  <td>${!isNaN(H) ? H.toFixed(2) : ""}</td> <!-- H -->
+  <td>${I}</td>                 <!-- I -->
+  <td>${J}</td>                 <!-- J -->
+        `;
+        tableBody.appendChild(tr);
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+ 
+document.getElementById("downloadExcel").addEventListener("click", function () {
+  const table = document.getElementById("dataTable");
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(table);
+  XLSX.utils.book_append_sheet(wb, ws, "แรงบีบมือ");
+  XLSX.writeFile(wb, "แรงบีบมือ");
+});
+
+// 👉 ดาวน์โหลด PDF
+document.getElementById("downloadPDF").addEventListener("click", function () {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFont("THSarabunNew", "normal"); // ถ้าคุณใช้ font ไทย ต้อง embed เพิ่ม
+
+  // ใช้ autoTable สร้าง PDF จากตาราง
+  doc.autoTable({
+    html: '#dataTable',
+    startY: 10,
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [41, 128, 185] }, // เปลี่ยนสีหัวตาราง
+    margin: { top: 10 },
+  });
+
+  doc.save("แรงบีบมือ.pdf");
+});
+
+</script>
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+    integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.min.js"
+    integrity="sha384-VQqxDN0EQCkWoxt/0vsQvZswzTHUVOImccYmSyhJTp7kGtPed0Qcx8rK9h9YEgx+"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>

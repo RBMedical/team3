@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <link rel="stylesheet" href="transition.css">
+  <script src="AppScript.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <title>รายงานผลตรวจสุขภาพทางอินเตอร์เน็ต</title>
+
+ <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+      margin: 0;
+      background-image: url("pic/CheckUP.png");
+    }
+    #selectedValue ,#fullname {
+    font-family: sarabun;
+  }
+
+    /* Layout */
+    .wrapper {
+      display: flex;
+      height: 100vh;
+    }
+
+     .nav-title {
+      max-width: 760px;
+    }
+
+    .nav-kicker {
+      margin: 0 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--brand);
+    }
+
+    .nav-title h1 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 36px);
+      line-height: 1.06;
+      color: var(--brand-deep);
+    }
+
+    .nav-title p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .sidebar {
+      position: fixed;
+      width: 20%;
+      background-color: rgb(225, 232, 236);
+      color: teal;
+      padding: 20px;
+      border-right: 1px solid #023636;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2),
+        inset -2px 0 5px rgba(255, 255, 255, 0.1);
+    }
+
+    .print-area {
+      width: 80%;
+      padding: 20px;
+      color: teal;
+      overflow-x: hidden;
+      margin-left: 400px;
+      width: calc(100% - 400px);
+    }
+
+    .content {
+      width: 80%;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    /* Table container */
+    .table-container {
+      width: 90%;
+      margin: auto;
+    }
+
+    .table-scroll {
+      max-height: 400px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid #dee2e6;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.60rem;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      text-align: center;
+      border-right: 1px solid #dee2e6;
+      border-bottom: 1px solid #dee2e6;
+      font-size: 0.60rem;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: none;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Sticky Header */
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: #f8f9fa;
+    }
+
+    /* มุมโค้ง */
+    thead th:first-child {
+      border-top-left-radius: 10px;
+    }
+
+    thead th:last-child {
+      border-top-right-radius: 10px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .menu-item {
+      padding: 12px 16px;
+      color: #555;
+      cursor: pointer;
+      position: relative;
+    }
+
+    /* hover */
+    .menu-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    /* active แบบในภาพ */
+    .menu-item.active {
+      background-color: #e6f4ef;
+      /* เขียวอ่อน */
+      color: #0f9d7a;
+      /* เขียว */
+      font-weight: 500;
+    }
+
+    /* เส้นด้านซ้าย */
+    .menu-item.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      background-color: #0f9d7a;
+      /* สีเขียวเข้ม */
+      border-radius: 0 4px 4px 0;
+    }
+
+    .logo-box {
+      width: 60%;
+      height: 80px;
+
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+ 
+
+    .headnav {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .navbar {
+      justify-content: space-between;
+    }
+
+    .b-example-divider {
+      width: 100%;
+      height: 0.1rem;
+      background-color: rgba(0, 0, 0, 0.1);
+      border: solid rgba(0, 0, 0, .15);
+      border-width: 1px 0;
+      box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+    }
+
+    @media print {
+
+      .sidebar,
+      .noprint,
+      .btn {
+        display: none !important;
+      }
+
+      .print-area {
+        width: 100% !important;
+        max-width: 100% !important;
+        color: #000 !important;
+        padding: 0 !important;
+      }
+
+      table {
+        width: 100% !important;
+        font-size: 10px !important;
+      }
+
+      th,
+      td {
+        padding: 6px !important;
+        font-size: 10px !important;
+        color: #000 !important;
+      }
+
+      .navbar {
+        background: white !important;
+        border-bottom: 2px solid #0f9d7a;
+        margin-bottom: 10px;
+      }
+    }
+
+    /* ปรับปรุงการแสดงผลตารางบนหน้าเว็บ */
+    #mainTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Sarabun', 'Noto Sans Thai', Arial, sans-serif;
+    }
+
+    #mainTable th {
+      background-color: #2c5f6e !important;
+      color: white !important;
+      padding: 10px 8px !important;
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    #mainTable td {
+      padding: 8px 6px;
+      font-size: 13px;
+      border: 1px solid #c8d6dc;
+    }
+
+    #mainTable tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    #mainTable .text-danger-custom {
+      color: #c62828;
+      font-weight: 700;
+      background-color: #ffebee;
+    }
+
+    /* สำหรับการพิมพ์ PDF */
+    @media print {
+      body.exporting-pdf * {
+        visibility: hidden;
+      }
+
+      body.exporting-pdf .pdf-capture,
+      body.exporting-pdf .pdf-capture * {
+        visibility: visible;
+      }
+
+      .pdf-capture {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+      }
+    }
+
+    /* Responsive สำหรับหน้าจอเล็ก */
+    @media (max-width: 768px) {
+      #mainTable {
+        font-size: 11px;
+      }
+
+      #mainTable th,
+      #mainTable td {
+        padding: 5px 3px;
+      }
+    }
+
+    .navbar {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: stretch !important;
+    }
+
+    .navbar h5 {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .navbar .icon-link {
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .table-result {
+      border: 1px solid #000;
+      border-collapse: collapse;
+    }
+
+    .table-result th,
+    .table-result td {
+      border: 1px solid #dee2e6;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 20%;
+      height: 100vh;
+      overflow-y: auto;
+
+      /* เผื่อเมนูยาว */
+      table {
+        table-layout: fixed;
+      }
+    }
+
+
+    /* ... ส่วนอื่นไม่เปลี่ยน ... */
+
+    @media print {
+
+      body,
+      html {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+
+      .sidebar,
+      .noprint,
+      .btn,
+      .icon-link,
+      #loading,
+      .b-example-divider,
+      .logo-box {
+        display: none !important;
+      }
+
+      .wrapper {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .print-area {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 12px 15px !important;
+        background: white !important;
+        color: black !important;
+        box-sizing: border-box !important;
+      }
+
+      /* บังคับตารางให้เต็ม A4 แนวนอน */
+      .table-container,
+      .table-responsive,
+      .table {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: visible !important;
+      }
+
+      table,
+      #mainTable {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        font-size: 9pt !important;
+        border-collapse: collapse !important;
+        word-wrap: break-word !important;
+      }
+
+      th,
+      td {
+        border: 1px solid #aaa !important;
+        padding: 5px 4px !important;
+        font-size: 8pt !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+      }
+
+      td:first-child,
+      th:first-child {
+        width: 22mm !important;
+      }
+
+      td:nth-child(2),
+      th:nth-child(2) {
+        width: 38mm !important;
+        text-align: left !important;
+      }
+
+      /* ป้องกันการตัดขอบ */
+      * {
+        box-shadow: none !important;
+        transform: none !important;
+      }
+
+      .navbar {
+        display: block !important;
+        background: white !important;
+        margin-bottom: 10px !important;
+      }
+
+      .navbar h5 {
+        font-size: 14pt !important;
+        margin-bottom: 5px !important;
+      }
+    }
+
+    /* ... ส่วนอื่นไม่เปลี่ยน ... */
+  </style>
+    <style>
+.menu {
+  font-family: "Sarabun", sans-serif;
+  width: 260px;
+  padding: 12px;
+  background: #eef6f7;
+  border-radius: 14px;
+  font-size: 0.75rem;
+}
+
+.menu ul {
+ list-style: none;
+  padding-left: 0;   /* ❗ ตัดระยะซ้ายออกทั้งหมด */
+  margin: 0;
+}
+
+.menu ul ul {
+  padding-left: 15px;
+}
+
+.menu li {
+  margin: 4px 0;
+}
+
+.menu-label,
+.menu a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: #123;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.menu-label:hover,
+.menu a:hover {
+  background: #d8f3f1;
+  color: #006b66;
+}
+.menu > ul > li {
+  padding-left: 0;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #d9eeee;
+  color: #00796b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.child-menu {
+  display: none;
+}
+
+.child-menu.open {
+  display: block;
+}
+
+/* หน้าปัจจุบัน */
+.menu a.active {
+  background: linear-gradient(135deg, #00a99d, #00897b);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(0, 137, 123, 0.28);
+}
+
+.menu a.active::before {
+  content: "●";
+  font-size: 9px;
+  color: white;
+}
+</style>
+<style>
+  @font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsiH0B4gaVc.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsgH1x4gaVc.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1x4gaVc.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuaabVmUiA8.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiA8.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 500;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWub2bVmUiA8.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuYjalmUiA8.ttf) format('truetype');
+}
+body {
+  padding: 20px;
+  font-family: "open sans";
+  color: #555;
+}
+label {
+  font-weight: 600;
+}
+.nav-container {
+  background: #45596c;
+  font-size: 13px;
+}
+.nav-container ul {
+  margin: 0;
+  padding: 0;
+}
+.nav-container ul > li {
+  list-style: none;
+}
+.nav-container ul > li a.nav-quick-step {
+  color: inherit;
+  font-size: 10pt;
+}
+.nav-container ul > li a.nav-quick-step:hover {
+  color: #999;
+  cursor: pointer;
+  text-decoration: none;
+}
+.nav-container .panel {
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+.nav-container .panel .list-group-item {
+  color: #a7b1c2;
+  text-decoration: none;
+  margin-left: 14px;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  font-weight: 600;
+}
+.nav-container .panel .list-group-item:hover {
+  color: #fff;
+}
+.nav-container .panel .list-group-item:active,
+.nav-container .panel .list-group-item:focus {
+  color: #fff !important;
+}
+.nav-container .panel .list-group-item > i.fa {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-container .panel .list-group-item[aria-expanded="true"] > i.fa:before {
+  content: "\f107";
+}
+.nav-container .panel .list-group-item[aria-expanded="false"] > i.fa:before {
+  content: "\f104";
+}
+.nav-container .panel.active {
+  border-left: #19aa8d 4px solid;
+  background: #0e2133;
+}
+.nav-container .panel.active .list-group-item {
+  margin-left: 10px;
+}
+.nav-container .panel.active .list-group-item.active {
+  color: #fff;
+}
+.nav-container .panel .list-group-subnav {
+  padding-left: 20px;
+}
+
+</style>
+
+ <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+      margin: 0;
+      background-image: url("pic/CheckUP.png");
+    }
+
+    .wrapper {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 20%;
+      height: 100vh;
+      overflow-y: auto;
+      background-color: rgb(225, 232, 236);
+      color: teal;
+      padding: 20px;
+      border-right: 1px solid #023636;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.2),
+                  inset -2px 0 5px rgba(255,255,255,0.1);
+    }
+
+    .print-area {
+      padding: 20px;
+      color: teal;
+      overflow-x: hidden;
+      margin-left: 20%;
+      width: 80%;
+    }
+
+    .logo-box {
+      width: 100%;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .b-example-divider {
+      width: 100%;
+      height: 0.1rem;
+      background-color: rgba(0,0,0,0.1);
+      border: solid rgba(0,0,0,.15);
+      border-width: 1px 0;
+      box-shadow: inset 0 .5em 1.5em rgba(0,0,0,.1),
+                  inset 0 .125em .5em rgba(0,0,0,.15);
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .menu-item {
+      padding: 12px 16px;
+      color: #555;
+      cursor: pointer;
+      position: relative;
+      display: block;
+      text-decoration: none;
+    }
+
+    .menu-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .menu-item.active {
+      background-color: #e6f4ef;
+      color: #0f9d7a;
+      font-weight: 500;
+    }
+
+    .menu-item.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      background-color: #0f9d7a;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .navbar {
+      justify-content: space-between;
+    }
+
+    .chart-card {
+      width: 90%;
+      max-width: 1100px;
+      margin: 25px auto;
+      padding: 18px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .chart-box {
+      width: 60%;
+      height: 330px;
+      min-width: 0;
+    }
+
+    .chart-box canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .chart-note {
+      width: 40%;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      color: #333;
+      border-left: 1px solid #e0e0e0;
+    }
+
+    .chart-note h6 {
+      color: #0f9d7a;
+      font-weight: 600;
+    }
+
+    .chart-note li {
+      margin-bottom: 6px;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .dot.red {
+      background: red;
+    }
+
+    .dot.blue {
+      background: #0d6efd;
+    }
+
+    #human,
+    #sick {
+      min-width: 30px;
+      max-width: 30px;
+    }
+
+    @media (max-width: 768px) {
+      .wrapper {
+        display: block;
+      }
+
+      .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+      }
+
+      .print-area {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .chart-card {
+        width: 95%;
+        flex-direction: column;
+      }
+
+      .chart-box,
+      .chart-note {
+        width: 100%;
+      }
+
+      .chart-note {
+        border-left: none;
+        border-top: 1px solid #e0e0e0;
+      }
+    }
+
+    @media print {
+      .sidebar,
+      .noprint,
+      .btn {
+        display: none !important;
+      }
+
+      .print-area {
+        width: 100% !important;
+        margin-left: 0 !important;
+        color: #000 !important;
+      }
+
+      .chart-card {
+        width: 100% !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+
+
+  <link rel="stylesheet" href="sidebar.css">
+</head>
+
+<body>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const fullname = localStorage.getItem("fullname") || "";
+  const el = document.getElementById("fullname");
+
+  if (el) {
+    el.textContent = fullname;
+  }
+});
+</script>
+  <div class="wrapper">
+
+     <!-- Sidebar -->
+   <div class="sidebar">
+    <div id="fullname" class="fs-4 ms-2 mt-2"></div>
+    <div class="logo-box">
+      <img src="pic/Logo.png" alt="logo">
+    </div>
+
+      <div class="fs-6 ms-2" style="font-family: sarabun;">รายงานผลตรวจสุขภาพประจำปี</div>
+
+      <div id="selectedValue" class="ms-2 fs-6 fw-bold noprint"></div>
+      <div class="b-example-divider"></div>
+     <div id="dynamicMenu" class="menu mt-1"></div>
+    </div>
+    <!-- Content -->
+    <div class="container-md print-area" style="font-family: sarabun; color: teal;">
+
+      <div class="navbar bg-body-tertiary px-2 mt-2 mb-3">
+
+        <div class="d-flex w-100 align-items-center justify-content-between">
+
+          <!-- ซ้ายสุด -->
+         <div class="nav-title">
+                <p class="nav-kicker">Dashboard</p>
+                <h1>รายงานผลตรวจสุขภาพประจำปี</h1>
+               
+              </div>
+          <!-- ขวาสุด -->
+         
+      <div>
+                <svg onclick="exportXCEL()" style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="green" class="bi bi-file-earmark-spreadsheet-fill" viewBox="0 0 16 16">
+  <path d="M6 12v-2h3v2z"/>
+  <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M3 9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2H3z"/>
+</svg>
+          <svg onclick="exportPDF()" style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="red" class="bi bi-file-earmark-pdf-fill" viewBox="0 0 16 16">
+  <path d="M5.523 12.424q.21-.124.459-.238a8 8 0 0 1-.45.606c-.28.337-.498.516-.635.572l-.035.012a.3.3 0 0 1-.026-.044c-.056-.11-.054-.216.04-.36.106-.165.319-.354.647-.548m2.455-1.647q-.178.037-.356.078a21 21 0 0 0 .5-1.05 12 12 0 0 0 .51.858q-.326.048-.654.114m2.525.939a4 4 0 0 1-.435-.41q.344.007.612.054c.317.057.466.147.518.209a.1.1 0 0 1 .026.064.44.44 0 0 1-.06.2.3.3 0 0 1-.094.124.1.1 0 0 1-.069.015c-.09-.003-.258-.066-.498-.256M8.278 6.97c-.04.244-.108.524-.2.829a5 5 0 0 1-.089-.346c-.076-.353-.087-.63-.046-.822.038-.177.11-.248.196-.283a.5.5 0 0 1 .145-.04c.013.03.028.092.032.198q.008.183-.038.465z"/>
+  <path fill-rule="evenodd" d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2m5.5 1.5v2a1 1 0 0 0 1 1h2zM4.165 13.668c.09.18.23.343.438.419.207.075.412.04.58-.03.318-.13.635-.436.926-.786.333-.401.683-.927 1.021-1.51a11.7 11.7 0 0 1 1.997-.406c.3.383.61.713.91.95.28.22.603.403.934.417a.86.86 0 0 0 .51-.138c.155-.101.27-.247.354-.416.09-.181.145-.37.138-.563a.84.84 0 0 0-.2-.518c-.226-.27-.596-.4-.96-.465a5.8 5.8 0 0 0-1.335-.05 11 11 0 0 1-.98-1.686c.25-.66.437-1.284.52-1.794.036-.218.055-.426.048-.614a1.24 1.24 0 0 0-.127-.538.7.7 0 0 0-.477-.365c-.202-.043-.41 0-.601.077-.377.15-.576.47-.651.823-.073.34-.04.736.046 1.136.088.406.238.848.43 1.295a20 20 0 0 1-1.062 2.227 7.7 7.7 0 0 0-1.482.645c-.37.22-.699.48-.897.787-.21.326-.275.714-.08 1.103"/>
+</svg>
+            <a href="index.html" class="btn btn-outline-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house"
+                viewBox="0 0 16 16">
+                <path
+                  d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z">
+                </path>
+              </svg>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    <span id="loading" class="fs-6 mt-2 mb-2 d-block"></span>
+
+    <div class="chart-card">
+      <div class="chart-box">
+        <canvas id="myChart"></canvas>
+      </div>
+
+      <div class="chart-note">
+        <h6 class="mb-3">แผนผังเทียบระหว่างผลตรวจปกติ และ ผลตรวจผิดปกติ</h6>
+
+        <ul class="list-unstyled small">
+          <li><b>BMI</b> : ดัชนีมวลกาย</li>
+          <li><b>CBC</b> : ความสมบูรณ์ของเม็ดเลือด</li>
+          <li><b>Urine</b> : ปัสสาวะ</li>
+          <li><b>X Ray</b> : เอ็กซเรย์ปอด</li>
+          <li><b>Sugar</b> : ปริมาณน้ำตาลในเลือด</li>
+          <li><b>Cholesterol</b> : ปริมาณไขมันในเลือด</li>
+          
+        </ul>
+
+        <hr>
+
+        <div class="small">
+          <span class="dot red"></span> ผิดปกติ<br>
+          <span class="dot blue"></span> ปกติ
+        </div>
+      </div>
+    </div>
+
+    <div class="container-md pt-4 px-2">
+      <div class="row g-4">
+
+        <div class="col-sm-6 col-xl-3">
+          <div class="rounded d-flex align-items-center justify-content-between p-4" style="background-color: paleturquoise;">
+            <div class="col-2">
+              <img id="human" src="pic/human.png">
+            </div>
+
+            <div class="col-10">
+              <div class="ms-3">
+                <p class="mb-2" style="font-size: 0.75rem;">จำนวนผู้เข้ารับการตรวจ</p>
+                <h6 id="countaccept" class="fs-1 fw-bold mb-0">0</h6>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="maxabnormal" class="col-sm-6 col-xl-3"></div>
+
+        <div class="col-sm-6 col-xl-3">
+          <div class="rounded d-flex align-items-center justify-content-between p-4" style="background-color:royalblue;">
+            <img src="pic/filter.png" style="width: 30px;">
+
+            <div class="ms-3">
+              <p class="text-light mb-2" style="font-size: 0.75rem;">จำนวนเคสที่ต้องติดตาม</p>
+              <div id="follow" class="text-light fs-2 fw-bold mb-0">0</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="container-sm mt-5">
+      <div class="bg-light fs-6 mb-3 p-2">
+        ตารางแสดงจำนวนผู้รับการตรวจทั้งผลปกติและผิดปกติ
+      </div>
+
+      <table class="table table-success table-border table-striped-columns" style="font-size: 0.80rem;">
+        <thead class="table-secondary">
+          <tr>
+            <th scope="col" class="text-center">รายการตรวจ</th>
+            <th scope="col" class="text-center">ปกติ</th>
+            <th scope="col" class="text-center">ผิดปกติ</th>
+          </tr>
+        </thead>
+
+        <tbody id="allew" class="table-group-divider"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let myChart = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+  const fullname = localStorage.getItem("fullname") || "";
+  const fullnameEl = document.getElementById("fullname");
+
+  if (fullnameEl) {
+    fullnameEl.textContent = fullname;
+  }
+
+  loadData();
+  loadAbnormalCount();
+});
+
+function getSelectedValue() {
+  return localStorage.getItem("selectedCustomer") || "";
+}
+
+function loadData() {
+  const selectedValue = getSelectedValue();
+
+  const selectedEl = document.getElementById("selectedValue");
+  const loadingEl = document.getElementById("loading");
+
+  if (selectedEl) {
+    selectedEl.innerText = selectedValue;
+  }
+
+  if (!selectedValue) {
+    if (loadingEl) {
+      loadingEl.innerText = "ไม่พบค่า selectedCustomer ใน localStorage";
+    }
+    return;
+  }
+
+  if (loadingEl) {
+    loadingEl.innerText = "กำลังโหลดข้อมูล...";
+  }
+
+  window.handleData = function (data) {
+    if (loadingEl) {
+      loadingEl.innerText = "";
+    }
+
+    console.log("ข้อมูล =", data);
+
+    drawChart(data);
+    showMaxAbnormal(data);
+    renderSummaryTable(data);
+
+    const countAcceptEl = document.getElementById("countaccept");
+    if (countAcceptEl) {
+      countAcceptEl.textContent =
+        Number(data.bmin || 0) + Number(data.bmia || 0);
+    }
+  };
+
+  const script = document.createElement("script");
+
+  script.src = GAS_URL
+    + "?app=table&id=" + encodeURIComponent(selectedValue)
+    + "&callback=handleData"
+    + "&t=" + Date.now();
+
+  script.onerror = function () {
+    if (loadingEl) {
+      loadingEl.innerText = "โหลดข้อมูลกราฟไม่สำเร็จ";
+    }
+  };
+
+  document.body.appendChild(script);
+}
+
+function loadAbnormalCount() {
+  const selectedValue = getSelectedValue();
+
+  if (!selectedValue) {
+    const followEl = document.getElementById("follow");
+    if (followEl) followEl.textContent = "0";
+    return;
+  }
+
+  fetch(
+    ABNORMAL_URL
+    + "?app=follow&selectedValue=" + encodeURIComponent(selectedValue)
+    + "&t=" + Date.now()
+  )
+    .then(res => res.json())
+    .then(data => {
+      console.log("follow =", data);
+
+      const followEl = document.getElementById("follow");
+      if (followEl) {
+        followEl.textContent = data.countFollow || 0;
+      }
+    })
+    .catch(err => {
+      console.error("abnormal error:", err);
+
+      const followEl = document.getElementById("follow");
+      if (followEl) {
+        followEl.textContent = "0";
+      }
+    });
+}
+
+function renderSummaryTable(data) {
+  const resultDiv = document.getElementById("allew");
+  if (!resultDiv) return;
+
+  resultDiv.innerHTML = `
+    <tr>
+      <td class="text-start">ดัชนีมวลกาย / BMI</td>
+      <td class="text-center">${data.bmin || 0}</td>
+      <td class="text-center">${data.bmia || 0}</td>
+    </tr>
+    <tr>
+      <td class="text-start">ความสมบูรณ์ของเม็ดเลือด / Complete Blood Count</td>
+      <td class="text-center">${data.cbcn || 0}</td>
+      <td class="text-center">${data.cbca || 0}</td>
+    </tr>
+    <tr>
+      <td class="text-start">ปัสสาวะแบบสมบูรณ์ / Urinalysis</td>
+      <td class="text-center">${data.urinen || 0}</td>
+      <td class="text-center">${data.urinea || 0}</td>
+    </tr>
+    <tr>
+      <td class="text-start">เอ็กซเรย์ปอด / Chest X-Ray</td>
+      <td class="text-center">${data.xrayn || 0}</td>
+      <td class="text-center">${data.xraya || 0}</td>
+    </tr>
+    <tr>
+      <td class="text-start">ปริมาณน้ำตาลในเลือด / Glucose</td>
+      <td class="text-center">${data.fbsn || 0}</td>
+      <td class="text-center">${data.fbsa || 0}</td>
+    </tr>
+    <tr>
+      <td class="text-start">ปริมาณไขมันในเลือด / Cholesterol</td>
+      <td class="text-center">${data.choln || 0}</td>
+      <td class="text-center">${data.chola || 0}</td>
+    </tr>
+    <tr>
+      <td class="text-start">ปริมาณไขมันดีในเลือด / HDL</td>
+      <td class="text-center">${data.hdln || 0}</td>
+      <td class="text-center">${data.hdla || 0}</td>
+    </tr>
+    <tr>
+      <td class="text-start">ปริมาณไขมันไม่ดีในเลือด / LDL</td>
+      <td class="text-center">${data.ldln || 0}</td>
+      <td class="text-center">${data.ldla || 0}</td>
+    </tr>
+    <tr>
+      <td class="text-start">ปริมาณไตรกลีเซอไรด์ / Triglycerides</td>
+      <td class="text-center">${data.trin || 0}</td>
+      <td class="text-center">${data.tria || 0}</td>
+    </tr>
+   
+  `;
+}
+
+function drawChart(data) {
+  const labels = ["BMI", "CBC", "Urine", "X Ray", "Sugar", "Cholesterol"];
+
+  const normalData = [
+    Number(data.bmin || 0),
+    Number(data.cbcn || 0),
+    Number(data.urinen || 0),
+    Number(data.xrayn || 0),
+    Number(data.fbsn || 0),
+    Number(data.choln || 0)
+   
+  ];
+
+  const abnormalData = [
+    Number(data.bmia || 0),
+    Number(data.cbca || 0),
+    Number(data.urinea || 0),
+    Number(data.xraya || 0),
+    Number(data.fbsa || 0),
+    Number(data.chola || 0)
+  
+  ];
+
+  if (myChart !== null) {
+    myChart.destroy();
+  }
+
+  const canvas = document.getElementById("myChart");
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+
+  myChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "ผิดปกติ",
+          data: abnormalData,
+          borderColor: "red",
+          backgroundColor: "transparent",
+          borderWidth: 3,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          tension: 0
+        },
+        {
+          label: "ปกติ",
+          data: normalData,
+          borderColor: "#0d6efd",
+          backgroundColor: "transparent",
+          borderWidth: 3,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          tension: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top"
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0
+          }
+        }
+      }
+    }
+  });
+}
+
+function showMaxAbnormal(data) {
+  const map = {
+    bmia: "ดัชนีมวลกาย",
+    cbca: "ความสมบูรณ์ของเม็ดเลือด",
+    urinea: "ตรวจปัสสาวะ",
+    xraya: "เอ็กซเรย์ปอด",
+    fbsa: "ปริมาณน้ำตาลในเลือด",
+    chola: "ปริมาณไขมันในเลือด",
+  
+  };
+
+  const values = {
+    bmia: Number(data.bmia || 0),
+    cbca: Number(data.cbca || 0),
+    urinea: Number(data.urinea || 0),
+    xraya: Number(data.xraya || 0),
+    fbsa: Number(data.fbsa || 0),
+    chola: Number(data.chola || 0),
+   
+   
+  };
+
+  let maxKey = null;
+  let maxValue = -1;
+
+  for (let key in values) {
+    if (values[key] > maxValue) {
+      maxValue = values[key];
+      maxKey = key;
+    }
+  }
+
+  const resultText = maxValue > 0 ? map[maxKey] : "ไม่พบค่าผิดปกติ";
+
+  const maxBox = document.getElementById("maxabnormal");
+  if (!maxBox) return;
+
+  maxBox.innerHTML = `
+    <div class="rounded d-flex align-items-center justify-content-between p-4" style="background-color: lightseagreen;">
+      <div class="col-2">
+        <img id="sick" src="pic/sick.png">
+      </div>
+
+      <div class="col-10">
+        <div class="ms-3 text-light">
+          <p class="mb-2" style="font-size: 0.75rem;">ผิดปกติสูงสุด</p>
+          <h6 class="mb-0 text-danger"  style="font-size: 0.75rem;">${resultText}</h6>
+          <small>จำนวน ${maxValue > 0 ? maxValue : 0} ราย</small>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function exportPDF() {
+  window.print();
+}
+</script>
+<script>
+const menuData = [
+  { text: "Dashboard", link: "stdashboard.html"},
+  { text: "ตรวจร่างกายทั่วไป", link: "stpe.html" },
+  { text: "ตรวจปัสสาวะทั่วไป", link: "stua.html" },
+  { text: "เอกซเรย์ทรวงอก", link: "stxray.html" },
+  
+
+  {
+    text: "ผลตรวจทางห้องปฏิบัติการ",
+    open: false,
+    children: [
+      { text: "ค่าความสมบูรณ์ของเม็ดเลือด", link: "stcbc.html" },
+      { text: "ค่าน้ำตาลในเลือด", link: "stfbs.html" },
+      {
+        text: "ปริมาณไขมันในเลือด",
+        open: false,
+        children: [
+          { text: "คอเลสเตอรอล(Cholesterol)", link: "stchol.html" },
+          { text: "ไขมันดี(HDL)", link: "sthdl.html" },
+          { text: "ไขมันเสีย(LDL)", link: "stldl.html" },
+          { text: "ไตรกลีเซอไรด์ (Triglyceride)", link: "sttri.html" }
+        ]
+      },
+      
+    ]
+  }
+];
+
+function createMenu(items) {
+  const ul = document.createElement("ul");
+
+  items.forEach(item => {
+    const li = document.createElement("li");
+
+    if (item.children && item.children.length > 0) {
+      const label = document.createElement("span");
+      label.className = "menu-label";
+
+      const icon = document.createElement("span");
+      icon.className = "icon";
+      icon.textContent = item.open ? "−" : "+";
+
+      label.appendChild(icon);
+      label.appendChild(document.createTextNode(item.text));
+
+      const childMenu = createMenu(item.children);
+      childMenu.className = "child-menu";
+
+      if (item.open) {
+        childMenu.classList.add("open");
+      }
+
+      label.onclick = function () {
+        childMenu.classList.toggle("open");
+
+        if (childMenu.classList.contains("open")) {
+          icon.textContent = "−";
+        } else {
+          icon.textContent = "+";
+        }
+      };
+
+      li.appendChild(label);
+      li.appendChild(childMenu);
+
+    } else {
+      const a = document.createElement("a");
+a.href = item.link;
+a.textContent = item.text; // ✅ แสดงเฉพาะชื่อ
+li.appendChild(a);
+    }
+
+    ul.appendChild(li);
+  });
+
+  return ul;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const menuBox = document.getElementById("dynamicMenu");
+  if (!menuBox) return;
+
+  menuBox.innerHTML = "";
+  menuBox.appendChild(createMenu(menuData));
+
+  const currentPage = window.location.pathname.split("/").pop() || "xray.html";
+  menuBox.querySelectorAll("a").forEach(a => {
+    const hrefPage = a.getAttribute("href");
+    if (hrefPage === currentPage) {
+      a.classList.add("active");
+
+      let parent = a.parentElement;
+      while (parent && parent !== menuBox) {
+        if (parent.classList && parent.classList.contains("child-menu")) {
+          parent.classList.add("open");
+
+          const label = parent.previousElementSibling;
+          if (label) {
+            const icon = label.querySelector(".icon");
+            if (icon) icon.textContent = "−";
+          }
+        }
+        parent = parent.parentElement;
+      }
+    }
+  });
+});
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+</body>
+</html>

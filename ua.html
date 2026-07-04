@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <link rel="stylesheet" href="transition.css">
+  <script src="AppScript.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Sarabun Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+ 
+  
+  <title>รายงานผลตรวจสุขภาพทางอินเตอร์เน็ต</title>
+
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+      margin: 0;
+      background-image: url("pic/CheckUP.png");
+    }
+ #selectedValue ,#fullname {
+    font-family: sarabun;
+  }
+    /* Layout */
+    .wrapper {
+      display: flex;
+      height: 100vh;
+    }
+
+     .nav-title {
+      max-width: 760px;
+    }
+
+    .nav-kicker {
+      margin: 0 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--brand);
+    }
+
+    .nav-title h1 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 36px);
+      line-height: 1.06;
+      color: var(--brand-deep);
+    }
+
+    .nav-title p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .sidebar {
+      position: fixed;
+      width: 20%;
+      background-color: rgb(225, 232, 236);
+      color: teal;
+      padding: 20px;
+      border-right: 1px solid #023636;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2),
+        inset -2px 0 5px rgba(255, 255, 255, 0.1);
+    }
+
+    .print-area {
+      width: 80%;
+      padding: 20px;
+      color: teal;
+      overflow-x: hidden;
+      margin-left: 400px;
+      width: calc(100% - 400px);
+    }
+
+    .content {
+      width: 80%;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    /* Table container */
+    .table-container {
+      width: 90%;
+      margin: auto;
+    }
+
+    .table-scroll {
+      max-height: 400px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid #dee2e6;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.60rem;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      text-align: center;
+      border-right: 1px solid #dee2e6;
+      border-bottom: 1px solid #dee2e6;
+      font-size: 0.60rem;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: none;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Sticky Header */
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: #f8f9fa;
+    }
+
+    /* มุมโค้ง */
+    thead th:first-child {
+      border-top-left-radius: 10px;
+    }
+
+    thead th:last-child {
+      border-top-right-radius: 10px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .menu-item {
+      padding: 12px 16px;
+      color: #555;
+      cursor: pointer;
+      position: relative;
+    }
+
+    /* hover */
+    .menu-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    /* active แบบในภาพ */
+    .menu-item.active {
+      background-color: #e6f4ef;
+      /* เขียวอ่อน */
+      color: #0f9d7a;
+      /* เขียว */
+      font-weight: 500;
+    }
+
+    /* เส้นด้านซ้าย */
+    .menu-item.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      background-color: #0f9d7a;
+      /* สีเขียวเข้ม */
+      border-radius: 0 4px 4px 0;
+    }
+
+    .logo-box {
+      width: 60%;
+      height: 80px;
+
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      /* ไม่ยืดภาพ */
+    }
+
+    .headnav {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .navbar {
+      justify-content: space-between;
+    }
+
+    .b-example-divider {
+      width: 100%;
+      height: 0.1rem;
+      background-color: rgba(0, 0, 0, 0.1);
+      border: solid rgba(0, 0, 0, .15);
+      border-width: 1px 0;
+      box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+    }
+
+    @media print {
+
+      .sidebar,
+      .noprint,
+      .btn {
+        display: none !important;
+      }
+
+      .print-area {
+        width: 100% !important;
+        max-width: 100% !important;
+        color: #000 !important;
+        padding: 0 !important;
+      }
+
+      table {
+        width: 100% !important;
+        font-size: 10px !important;
+      }
+
+      th,
+      td {
+        padding: 6px !important;
+        font-size: 10px !important;
+        color: #000 !important;
+      }
+
+      .navbar {
+        background: white !important;
+        border-bottom: 2px solid #0f9d7a;
+        margin-bottom: 10px;
+      }
+    }
+
+    /* ปรับปรุงการแสดงผลตารางบนหน้าเว็บ */
+    #mainTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Sarabun', 'Noto Sans Thai', Arial, sans-serif;
+    }
+
+    #mainTable th {
+      background-color: #2c5f6e !important;
+      color: white !important;
+      padding: 10px 8px !important;
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    #mainTable td {
+      padding: 8px 6px;
+      font-size: 13px;
+      border: 1px solid #c8d6dc;
+    }
+
+    #mainTable tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    #mainTable .text-danger-custom {
+      color: #c62828;
+      font-weight: 700;
+      background-color: #ffebee;
+    }
+
+    /* สำหรับการพิมพ์ PDF */
+    @media print {
+      body.exporting-pdf * {
+        visibility: hidden;
+      }
+
+      body.exporting-pdf .pdf-capture,
+      body.exporting-pdf .pdf-capture * {
+        visibility: visible;
+      }
+
+      .pdf-capture {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+      }
+    }
+
+    /* Responsive สำหรับหน้าจอเล็ก */
+    @media (max-width: 768px) {
+      #mainTable {
+        font-size: 11px;
+      }
+
+      #mainTable th,
+      #mainTable td {
+        padding: 5px 3px;
+      }
+    }
+
+    .navbar {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: stretch !important;
+    }
+
+    .navbar h5 {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .navbar .icon-link {
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .table-result {
+      border: 1px solid #000;
+      border-collapse: collapse;
+    }
+
+    .table-result th,
+    .table-result td {
+      border: 1px solid #dee2e6;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 20%;
+      height: 100vh;
+      overflow-y: auto;
+
+      /* เผื่อเมนูยาว */
+      table {
+        table-layout: fixed;
+      }
+    }
+
+
+    /* ... ส่วนอื่นไม่เปลี่ยน ... */
+
+    @media print {
+
+      body,
+      html {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+
+      .sidebar,
+      .noprint,
+      .btn,
+      .icon-link,
+      #loading,
+      .b-example-divider,
+      .logo-box {
+        display: none !important;
+      }
+
+      .wrapper {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .print-area {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 12px 15px !important;
+        background: white !important;
+        color: black !important;
+        box-sizing: border-box !important;
+      }
+
+      /* บังคับตารางให้เต็ม A4 แนวนอน */
+      .table-container,
+      .table-responsive,
+      .table {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: visible !important;
+      }
+
+      table,
+      #mainTable {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        font-size: 9pt !important;
+        border-collapse: collapse !important;
+        word-wrap: break-word !important;
+      }
+
+      th,
+      td {
+        border: 1px solid #aaa !important;
+        padding: 5px 4px !important;
+        font-size: 8pt !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+      }
+
+      td:first-child,
+      th:first-child {
+        width: 22mm !important;
+      }
+
+      td:nth-child(2),
+      th:nth-child(2) {
+        width: 38mm !important;
+        text-align: left !important;
+      }
+
+      /* ป้องกันการตัดขอบ */
+      * {
+        box-shadow: none !important;
+        transform: none !important;
+      }
+
+      .navbar {
+        display: block !important;
+        background: white !important;
+        margin-bottom: 10px !important;
+      }
+
+      .navbar h5 {
+        font-size: 14pt !important;
+        margin-bottom: 5px !important;
+      }
+    }
+
+    /* ... ส่วนอื่นไม่เปลี่ยน ... */
+  </style>
+    <style>
+.menu {
+  font-family: "Sarabun", sans-serif;
+  width: 260px;
+  padding: 12px;
+  background: #eef6f7;
+  border-radius: 14px;
+  font-size: 0.75rem;
+}
+
+.menu ul {
+ list-style: none;
+  padding-left: 0;   /* ❗ ตัดระยะซ้ายออกทั้งหมด */
+  margin: 0;
+}
+
+.menu ul ul {
+  padding-left: 15px;
+}
+
+.menu li {
+  margin: 4px 0;
+}
+
+.menu-label,
+.menu a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: #123;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.menu-label:hover,
+.menu a:hover {
+  background: #d8f3f1;
+  color: #006b66;
+}
+.menu > ul > li {
+  padding-left: 0;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #d9eeee;
+  color: #00796b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.child-menu {
+  display: none;
+}
+
+.child-menu.open {
+  display: block;
+}
+
+/* หน้าปัจจุบัน */
+.menu a.active {
+  background: linear-gradient(135deg, #00a99d, #00897b);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(0, 137, 123, 0.28);
+}
+
+.menu a.active::before {
+  content: "●";
+  font-size: 9px;
+  color: white;
+}
+</style>
+<style>
+  @font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsiH0B4gaVc.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsgH1x4gaVc.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1x4gaVc.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuaabVmUiA8.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiA8.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 500;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWub2bVmUiA8.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuYjalmUiA8.ttf) format('truetype');
+}
+body {
+  padding: 20px;
+  font-family: "open sans";
+  color: #555;
+}
+label {
+  font-weight: 600;
+}
+.nav-container {
+  background: #45596c;
+  font-size: 13px;
+}
+.nav-container ul {
+  margin: 0;
+  padding: 0;
+}
+.nav-container ul > li {
+  list-style: none;
+}
+.nav-container ul > li a.nav-quick-step {
+  color: inherit;
+  font-size: 10pt;
+}
+.nav-container ul > li a.nav-quick-step:hover {
+  color: #999;
+  cursor: pointer;
+  text-decoration: none;
+}
+.nav-container .panel {
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+.nav-container .panel .list-group-item {
+  color: #a7b1c2;
+  text-decoration: none;
+  margin-left: 14px;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  font-weight: 600;
+}
+.nav-container .panel .list-group-item:hover {
+  color: #fff;
+}
+.nav-container .panel .list-group-item:active,
+.nav-container .panel .list-group-item:focus {
+  color: #fff !important;
+}
+.nav-container .panel .list-group-item > i.fa {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-container .panel .list-group-item[aria-expanded="true"] > i.fa:before {
+  content: "\f107";
+}
+.nav-container .panel .list-group-item[aria-expanded="false"] > i.fa:before {
+  content: "\f104";
+}
+.nav-container .panel.active {
+  border-left: #19aa8d 4px solid;
+  background: #0e2133;
+}
+.nav-container .panel.active .list-group-item {
+  margin-left: 10px;
+}
+.nav-container .panel.active .list-group-item.active {
+  color: #fff;
+}
+.nav-container .panel .list-group-subnav {
+  padding-left: 20px;
+}
+
+</style>
+
+
+
+
+<!-- FINAL FIX: scrollbar เฉพาะในตาราง + ตารางสูงเต็มพื้นที่หน้าจอ -->
+<style id="final-table-scrollbar-only-fix">
+  html,
+  body {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box !important;
+  }
+
+  .wrapper {
+    width: 100% !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    overflow: hidden !important;
+  }
+
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 20% !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .print-area,
+  .container-md.print-area {
+    margin-left: 20% !important;
+    width: 80% !important;
+    max-width: none !important;
+    height: 100vh !important;
+    min-height: 0 !important;
+    padding: 28px 34px 24px 34px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    color: teal !important;
+  }
+
+  .print-area > .navbar {
+    flex: 0 0 auto !important;
+    margin-top: 0 !important;
+    margin-bottom: 14px !important;
+    border-radius: 0 !important;
+  }
+
+  #loading {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    margin: 0 0 8px 0 !important;
+  }
+
+  .table-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .table-scroll,
+  .table-responsive,
+  .table-only-scroll-fix {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: auto !important;
+    border: 1px solid #c8d6dc !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    box-shadow: 0 8px 22px rgba(16, 84, 92, 0.08) !important;
+  }
+
+  .print-area > .table-scroll,
+  .print-area > .table-responsive,
+  .print-area > .table-only-scroll-fix {
+    flex: 1 1 auto !important;
+  }
+
+  #mainTable,
+  .table-scroll > table,
+  .table-responsive > table,
+  .table-only-scroll-fix > table {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+  }
+
+  #mainTable thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 50 !important;
+    background-color: #2c5f6e !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 0 #c8d6dc !important;
+  }
+
+  #mainTable th,
+  #mainTable td {
+    vertical-align: middle !important;
+  }
+
+  @media (max-width: 992px) {
+    .sidebar {
+      width: 260px !important;
+    }
+
+    .print-area,
+    .container-md.print-area {
+      margin-left: 260px !important;
+      width: calc(100% - 260px) !important;
+      padding: 18px !important;
+    }
+  }
+
+  @media print {
+    html,
+    body {
+      height: auto !important;
+      overflow: visible !important;
+      padding: 0 !important;
+    }
+
+    .wrapper,
+    .print-area,
+    .container-md.print-area,
+    .table-container,
+    .table-scroll,
+    .table-responsive,
+    .table-only-scroll-fix {
+      height: auto !important;
+      max-height: none !important;
+      min-height: 0 !important;
+      display: block !important;
+      overflow: visible !important;
+      box-shadow: none !important;
+    }
+
+    .print-area,
+    .container-md.print-area {
+      margin-left: 0 !important;
+      width: 100% !important;
+      padding: 12px 15px !important;
+    }
+  }
+</style>
+
+  <link rel="stylesheet" href="sidebar.css">
+</head>
+
+<body>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const fullname = localStorage.getItem("fullname") || "";
+  const el = document.getElementById("fullname");
+
+  if (el) {
+    el.textContent = fullname;
+  }
+});
+</script>
+ <div class="wrapper">
+
+    <!-- Sidebar -->
+   <div class="sidebar">
+    <div id="fullname" class="fs-4 ms-2 mt-2"></div>
+    <div class="logo-box">
+      <img src="pic/Logo.png" alt="logo">
+    </div>
+
+      <div class="fs-6 ms-2" style="font-family: sarabun;">รายงานผลตรวจสุขภาพประจำปี</div>
+
+      <div id="selectedValue" class="ms-2 fs-6 fw-bold noprint"></div>
+      <div class="b-example-divider"></div>
+     <div id="dynamicMenu" class="menu mt-1"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="container-md print-area" style="font-family: sarabun; color: teal;">
+
+      <div class="navbar bg-body-tertiary px-2 mt-2 mb-3">
+
+        <div class="d-flex w-100 align-items-center justify-content-between">
+
+          <!-- ซ้ายสุด -->
+         <div class="nav-title">
+                <p class="nav-kicker">Urinalysis</p>
+                <h1  class="fs-4">ตรวจปัสสาวะทั่วไป</h1>
+               
+              </div>
+          <!-- ขวาสุด -->
+          <div>
+                <svg onclick="exportXCEL()" style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="green" class="bi bi-file-earmark-spreadsheet-fill" viewBox="0 0 16 16">
+  <path d="M6 12v-2h3v2z"/>
+  <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M3 9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2H3z"/>
+</svg>
+          <svg onclick="exportPDF()" style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="red" class="bi bi-file-earmark-pdf-fill" viewBox="0 0 16 16">
+  <path d="M5.523 12.424q.21-.124.459-.238a8 8 0 0 1-.45.606c-.28.337-.498.516-.635.572l-.035.012a.3.3 0 0 1-.026-.044c-.056-.11-.054-.216.04-.36.106-.165.319-.354.647-.548m2.455-1.647q-.178.037-.356.078a21 21 0 0 0 .5-1.05 12 12 0 0 0 .51.858q-.326.048-.654.114m2.525.939a4 4 0 0 1-.435-.41q.344.007.612.054c.317.057.466.147.518.209a.1.1 0 0 1 .026.064.44.44 0 0 1-.06.2.3.3 0 0 1-.094.124.1.1 0 0 1-.069.015c-.09-.003-.258-.066-.498-.256M8.278 6.97c-.04.244-.108.524-.2.829a5 5 0 0 1-.089-.346c-.076-.353-.087-.63-.046-.822.038-.177.11-.248.196-.283a.5.5 0 0 1 .145-.04c.013.03.028.092.032.198q.008.183-.038.465z"/>
+  <path fill-rule="evenodd" d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2m5.5 1.5v2a1 1 0 0 0 1 1h2zM4.165 13.668c.09.18.23.343.438.419.207.075.412.04.58-.03.318-.13.635-.436.926-.786.333-.401.683-.927 1.021-1.51a11.7 11.7 0 0 1 1.997-.406c.3.383.61.713.91.95.28.22.603.403.934.417a.86.86 0 0 0 .51-.138c.155-.101.27-.247.354-.416.09-.181.145-.37.138-.563a.84.84 0 0 0-.2-.518c-.226-.27-.596-.4-.96-.465a5.8 5.8 0 0 0-1.335-.05 11 11 0 0 1-.98-1.686c.25-.66.437-1.284.52-1.794.036-.218.055-.426.048-.614a1.24 1.24 0 0 0-.127-.538.7.7 0 0 0-.477-.365c-.202-.043-.41 0-.601.077-.377.15-.576.47-.651.823-.073.34-.04.736.046 1.136.088.406.238.848.43 1.295a20 20 0 0 1-1.062 2.227 7.7 7.7 0 0 0-1.482.645c-.37.22-.699.48-.897.787-.21.326-.275.714-.08 1.103"/>
+</svg>
+            <a href="index.html" class="btn btn-outline-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house"
+                viewBox="0 0 16 16">
+                <path
+                  d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z">
+                </path>
+              </svg>
+            </a>
+          </div>
+
+
+        </div>
+      </div>
+      <span id="loading" class="fs-5 mt-2 mb-2"></span>
+      <div class="table-scroll table-only-scroll-fix">
+      <table class="table table-result mt-3" id="mainTable">
+        <thead class="table-info">
+         <tr >
+          <th scope="col" class="text-center" style="min-width: 95px; max-width: 95px;">HN</th>
+          <th scope="col" class="text-center" style="min-width: 255px; max-width: 255px;">ชื่อ นามสกุล</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">color</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">Tran</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">Sp.Grav</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">Ph</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">Protain</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">Glu</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">RBC</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">WBC</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">Bac</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">Epi</th>
+          <th scope="col" class="text-center" style="min-width: 95px; max-width: 95px; font-size: 0.6rem;">ผลตรวจ</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">Amp</th>
+          <th scope="col" class="text-center" style="min-width: 47px; max-width: 47px; font-size: 0.6rem;">Preg</th>
+        </tr>
+        </thead>
+        <tbody id="cbcresult"></tbody>
+      </table>
+      </div>
+    </div>
+    <div id="pdfReport" class="pdf-only"></div>
+    <script>
+            function exportXCEL() {
+  const table = document.getElementById("mainTable");
+
+  if (!table) {
+    alert("ไม่พบตารางสำหรับส่งออก Excel");
+    return;
+  }
+
+  const workbook = XLSX.utils.book_new();
+
+  const worksheet = XLSX.utils.table_to_sheet(table, {
+    raw: true
+  });
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+
+  XLSX.writeFile(workbook, "รายงานผลตรวจสุขภาพ.xlsx");
+}
+function getPrintableTable() {
+        return document.getElementById("mainTable") || document.querySelector(".table.table-result");
+      }
+      function getPrintableTitle() {
+        const heading = document.querySelector(".navbar h5");
+        if (heading) {
+          return heading.textContent.replace(/\s+/g, " ").trim();
+        }
+        const navbar = document.querySelector(".navbar");
+        if (!navbar) {
+          return document.title || "Report";
+        }
+        const blocks = Array.from(navbar.querySelectorAll("div")).map(node =>
+          node.textContent.replace(/\s+/g, " ").trim()
+        ).filter(Boolean);
+        return blocks[0] || document.title || "Report";
+      }
+      function getRowsPerPage(table) {
+        const columnCount = table.querySelectorAll("thead tr:last-child th").length || 0;
+        if (columnCount >= 17) return 18;
+        if (columnCount >= 15) return 20;
+        return 22;
+      }
+      function fitNameCell(cell) {
+        const textLength = cell.textContent.trim().length;
+        let fontSize = 8.4;
+        if (textLength > 36) {
+          fontSize = 7.1;
+        } else if (textLength > 28) {
+          fontSize = 7.6;
+        } else if (textLength > 22) {
+          fontSize = 8;
+        }
+        cell.style.fontSize = fontSize + "px";
+        cell.style.whiteSpace = "nowrap";
+        cell.style.overflow = "hidden";
+        cell.style.textOverflow = "ellipsis";
+      }
+      function stylePrintableTable(table) {
+        const totalCols = table.querySelectorAll("thead th").length;
+
+        table.style.width = "100%";
+        table.style.maxWidth = "100%";
+        table.style.tableLayout = "fixed";
+        table.style.borderCollapse = "collapse";
+
+        Array.from(table.querySelectorAll("th, td")).forEach(cell => {
+          cell.removeAttribute("style");
+          cell.style.border = "1px solid #9fb3bf";
+          cell.style.padding = "2px 3px";
+          cell.style.verticalAlign = "middle";
+          cell.style.textAlign = "center";
+          cell.style.lineHeight = "1.05";
+          cell.style.boxSizing = "border-box";
+          cell.style.fontSize = "6.4pt";
+          cell.style.wordBreak = "break-word";
+          cell.style.overflowWrap = "break-word";
+          cell.style.whiteSpace = "normal";
+          cell.style.pageBreakInside = "auto";
+          cell.style.breakInside = "auto";
+        });
+
+        Array.from(table.querySelectorAll("thead th")).forEach(cell => {
+          cell.style.background = "#dbeaf1";
+          cell.style.fontWeight = "700";
+          cell.style.fontSize = "6.6pt";
+          cell.style.lineHeight = "1.05";
+        });
+        // 🔥 ทำค่าที่ผิดปกติเป็นสีแดงใน PDF
+Array.from(table.querySelectorAll("td")).forEach(cell => {
+  if (cell.classList.contains("text-danger-custom")) {
+    cell.style.color = "#d50000";
+    cell.style.fontWeight = "700";
+    cell.style.backgroundColor = "#ffe5e5";
+  }
+});
+
+        /*
+          ปรับความกว้างแบบยืดหยุ่นสำหรับตาราง UA 15 คอลัมน์:
+          คอลัมน์ 1 = 8%
+          คอลัมน์ 2 = 18%
+          คอลัมน์ที่เหลือแบ่งเท่า ๆ กัน เพื่อให้เต็ม 100%
+        */
+        const col1Width = 8;
+        const col2Width = 18;
+        const remain = 100 - col1Width - col2Width;
+        const otherWidth = remain / Math.max(totalCols - 2, 1);
+
+        const headers = table.querySelectorAll("thead th");
+        headers.forEach((th, i) => {
+          if (i === 0) th.style.width = col1Width + "%";
+          else if (i === 1) th.style.width = col2Width + "%";
+          else th.style.width = otherWidth + "%";
+        });
+
+        const rows = table.querySelectorAll("tbody tr");
+        rows.forEach(row => {
+          row.style.pageBreakInside = "auto";
+          row.style.breakInside = "auto";
+
+          const cells = row.children;
+          for (let i = 0; i < cells.length; i++) {
+            if (i === 0) cells[i].style.width = col1Width + "%";
+            else if (i === 1) cells[i].style.width = col2Width + "%";
+            else cells[i].style.width = otherWidth + "%";
+
+            cells[i].style.pageBreakInside = "auto";
+            cells[i].style.breakInside = "auto";
+          }
+
+          const nameCell = row.children[1];
+          if (nameCell) {
+            nameCell.style.whiteSpace = "nowrap";
+            nameCell.style.overflow = "hidden";
+            nameCell.style.textOverflow = "ellipsis";
+            nameCell.style.textAlign = "left";
+            nameCell.style.fontSize = "6.2pt";
+          }
+        });
+      }
+
+
+    
+   function buildPrintableReport() {
+  const table = getPrintableTable();
+  if (!table) return null;
+
+  const tbody = table.querySelector("tbody");
+  if (!tbody) return null;
+
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+  if (rows.length === 0) return null;
+
+  const root = document.createElement("div");
+
+  root.style.width = "100%";
+  root.style.maxWidth = "1123px";
+  root.style.margin = "0 auto";
+  root.style.fontFamily = "'Sarabun', sans-serif";
+  root.style.background = "#fff";
+
+  const title = getPrintableTitle();
+  const selectedValue = (document.getElementById("selectedValue")?.textContent || "").trim();
+  const printedAt = new Date().toLocaleString("th-TH");
+
+  const report = document.createElement("div");
+  report.style.padding = "25mm 12mm 15mm 18mm";
+  report.style.width = "100%";
+  report.style.boxSizing = "border-box";
+
+  const header = document.createElement("div");
+  header.style.display = "flex";
+  header.style.justifyContent = "space-between";
+  header.style.borderBottom = "1px solid #3c6e71";
+  header.style.marginBottom = "2mm";
+  header.style.breakAfter = "avoid";
+  header.style.pageBreakAfter = "avoid";
+
+  header.innerHTML = `
+    <div>
+      <div style="font-size:11px;font-weight:700;">${title}</div>
+      <div style="font-size:8px;">${selectedValue}</div>
+    </div>
+    <div style="font-size:7px;text-align:right;">
+      ${printedAt}
+    </div>
+  `;
+
+  report.appendChild(header);
+
+  const pageTable = table.cloneNode(true);
+  pageTable.style.width = "100%";
+  pageTable.style.tableLayout = "fixed";
+  pageTable.style.borderCollapse = "collapse";
+
+  stylePrintableTable(pageTable);
+
+  report.appendChild(pageTable);
+  root.appendChild(report);
+
+  return root;
+}
+      function printReport() {
+        const reportRoot = buildPrintableReport();
+        if (!reportRoot) {
+          return;
+        }
+        const printWindow = window.open("", "_blank", "width=1280,height=900");
+        if (!printWindow) {
+          alert("Unable to open print preview.");
+          return;
+        }
+        printWindow.document.write("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Print Report</title></head><body style=\"margin:0;background:#fff;\">" + reportRoot.innerHTML + "</body></html>");
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 500);
+      }
+      function exportPDF() {
+        const reportRoot = buildPrintableReport();
+        if (!reportRoot) return;
+
+        const printWindow = window.open("", "_blank");
+
+        printWindow.document.write(`
+    <html>
+    <head>
+      <title>Report</title>
+
+      <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+
+      <style>
+  @page {
+    size: A4 landscape;
+    margin: 30mm 10mm 15mm 10mm;
+  }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    margin: 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  th, td {
+    border: 1px solid #999;
+    padding: 2px 3px;
+    font-size: 6.4pt;
+    line-height: 1.05;
+    box-sizing: border-box;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  tr, td, th {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  body, table {
+    orphans: 1;
+    widows: 1;
+  }
+</style>
+    </head>
+
+    <body>
+      ${reportRoot.innerHTML}
+    </body>
+    </html>
+  `);
+
+        printWindow.document.close();
+
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
+      }
+      function showLoading(message = "Waiting for loading......") {
+        const loading = document.getElementById("loading");
+        if (loading) {
+          loading.style.display = "block";
+          loading.innerText = message;
+        }
+      }
+
+      function hideLoading() {
+        const loading = document.getElementById("loading");
+        if (loading) {
+          loading.innerText = "";
+          loading.style.display = "none";
+        }
+      }
+
+      function fetchJson(url) {
+        return fetch(url).then(response => {
+          if (!response.ok) {
+            throw new Error("HTTP error: " + response.status);
+          }
+          return response.json();
+        });
+      }
+
+      function isAbnormal(value) {
+        if (!value) return false;
+
+        const text = String(value).trim();
+
+        return text === "ผิดปกติ" || text.includes("สูง");
+      }
+
+      function loadAllRecords() {
+        const resultDiv1 = document.getElementById("cbcresult");
+        const selectedText = document.getElementById("selectedValue");
+
+        if (resultDiv1) {
+          resultDiv1.innerHTML = "";
+        }
+
+        const selectedValue = String(
+          localStorage.getItem("selectedCustomer") ||
+          localStorage.getItem("selectedDropdownValue") ||
+          ""
+        ).trim();
+
+        console.log("Selected Value:", selectedValue);
+
+        if (selectedText) {
+          selectedText.innerText = selectedValue;
+        }
+
+        if (!selectedValue) {
+          if (resultDiv1) {
+            resultDiv1.innerHTML = `
+            <tr>
+              <td colspan="17" class="text-center text-danger">ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่</td>
+            </tr>
+          `;
+          }
+          return;
+        }
+
+        showLoading();
+
+        fetchJson(BASE_URL + "?app=spe&type=main")
+          .then(data => {
+            console.log("Data received from API:", data);
+
+            if (!Array.isArray(data) || data.length === 0) {
+              if (resultDiv1) {
+                resultDiv1.innerHTML = `
+                <tr>
+                  <td colspan="17" class="text-center text-danger">ไม่พบข้อมูล</td>
+                </tr>
+              `;
+              }
+              hideLoading();
+              return;
+            }
+
+            let found = false;
+
+            data.forEach(row => {
+              if (String(row.customer || "").trim() === selectedValue) {
+                found = true;
+                resultDiv1.innerHTML += `
+               <tr>
+                  <td style="font-size: 0.6rem;" class="text-center">${row.register || ""}</td>
+                  <td style="font-size: 0.6rem;" class="text-start">${row.name || ""}</td>
+                  <td class="text-center" style="font-size: 0.6rem;">${row.color || ""}</td>
+                  <td class="text-center"  style="font-size: 0.6rem;">${row.appe || ""}</td>
+                  <td class="text-center"  style="font-size: 0.6rem;">${row.spec || ""}</td>
+                  <td class="text-center"  style="font-size: 0.6rem;">${row.ph || ""}</td>
+                   <td class="text-center"  style="font-size: 0.6rem;">${row.protain || ""}</td>
+                  <td class="text-center"  style="font-size: 0.6rem;">${row.glu || ""}</td>
+                   <td class="text-center"  style="font-size: 0.6rem;">${row.urbc || ""}</td>
+                    <td class="text-center"  style="font-size: 0.6rem;">${row.uwbc || ""}</td>
+                    <td class="text-center"  style="font-size: 0.6rem;">${row.bac || ""}</td>
+                     <td class="text-center"  style="font-size: 0.6rem;">${row.epi || ""}</td>
+        
+                 <td  style="font-size: 0.6rem;" class="text-center ${isAbnormal(row.urine) ? 'text-danger-custom' : ''}">
+      ${row.urine || ""}
+    </td>
+                  <td class="text-center"  style="font-size: 0.6rem;">${row.amp || ""}</td>
+                  <td class="text-center"  style="font-size: 0.6rem;">${row.preg || ""}</td>
+                </tr>
+              `;
+              }
+            });
+
+           if (!found && resultDiv1) {
+              resultDiv1.innerHTML = `
+              <tr>
+                <td colspan="17" class="text-center text-danger">ไม่พบข้อมูลของผู้ใช้ที่เลือก</td>
+              </tr>
+            `;
+            }
+
+            hideLoading();
+          })
+          .catch(error => {
+            console.error("Error fetching data:", error);
+
+            if (resultDiv1) {
+              resultDiv1.innerHTML = `
+              <tr>
+                <td colspan="17" class="text-center text-danger">เกิดข้อผิดพลาดในการดึงข้อมูล</td>
+              </tr>
+            `;
+            }
+
+            hideLoading();
+          });
+      }
+
+      document.addEventListener("DOMContentLoaded", loadAllRecords);
+
+
+    </script>
+<script>
+const menuData = [
+  { text: "Dashboard", link: "checkup.html"},
+  { text: "ตรวจร่างกายทั่วไป", link: "pe.html" },
+  { text: "ตรวจปัสสาวะทั่วไป", link: "ua.html" },
+  { text: "เอกซเรย์ทรวงอก", link: "xray.html" },
+  { text: "ตรวจคลื่นไฟฟ้าหัวใจ", link: "ekg.html" },
+
+  {
+    text: "ผลตรวจทางห้องปฏิบัติการ",
+    open: false,
+    children: [
+      { text: "ค่าความสมบูรณ์ของเม็ดเลือด", link: "cbc.html" },
+      { text: "ค่าน้ำตาลในเลือด", link: "fbs.html" },
+      {
+        text: "ปริมาณไขมันในเลือด",
+        open: false,
+        children: [
+          { text: "คอเลสเตอรอล(Cholesterol)", link: "chol.html" },
+          { text: "ไขมันดี(HDL)", link: "hdl.html" },
+          { text: "ไขมันเสีย(LDL)", link: "ldl.html" },
+          { text: "ไตรกลีเซอไรด์ (Triglyceride)", link: "tri.html" }
+        ]
+      },
+      {
+        text: "การทำงานของตับ",
+        open: false,
+        children: [
+          { text: "SGPT", link: "sgpt.html" },
+          { text: "SGOT", link: "sgot.html" },
+          { text: "Alkaline Phosphatase", link: "alp.html" }
+        ]
+      },
+      {
+        text: "การทำงานของไต",
+        open: false,
+        children: [
+          { text: "BUN", link: "bun.html" },
+          { text: "Creatinin", link: "crea.html" },
+          { text: "อัตราการกรองไต(eGFR)", link: "egfr.html" }
+        ]
+      },
+      { text: "ปริมาณกรดยูริคในเลือด(โรคเก๊าท์)", link: "uric.html" }
+    ]
+  },
+
+  {
+    text: "ผลทดสอบด้านอาชีวอนามัย",
+    open: false,
+    children: [
+      { text: "สมรรถภาพทางการได้ยิน(Audiogram)", link: "ear.html" },
+      { text: "สมรรถภาพความจุปอด(Spirometry)", link: "spiro.html" },
+      { text: "สมรรถภาพการมองเห็น (Occupational Vision Test)", link: "eyes.html" },
+      { text: "สมรรถภาพกล้ามเนื้อมือ", link: "hand.html" },
+      { text: "สมรรถภาพกล้ามเนื้อแรงเหยียดขาและหลัง", link: "lb.html" }
+    ]
+  }
+];
+
+function createMenu(items) {
+  const ul = document.createElement("ul");
+
+  items.forEach(item => {
+    const li = document.createElement("li");
+
+    if (item.children && item.children.length > 0) {
+      const label = document.createElement("span");
+      label.className = "menu-label";
+
+      const icon = document.createElement("span");
+      icon.className = "icon";
+      icon.textContent = item.open ? "−" : "+";
+
+      label.appendChild(icon);
+      label.appendChild(document.createTextNode(item.text));
+
+      const childMenu = createMenu(item.children);
+      childMenu.className = "child-menu";
+
+      if (item.open) {
+        childMenu.classList.add("open");
+      }
+
+      label.onclick = function () {
+        childMenu.classList.toggle("open");
+
+        if (childMenu.classList.contains("open")) {
+          icon.textContent = "−";
+        } else {
+          icon.textContent = "+";
+        }
+      };
+
+      li.appendChild(label);
+      li.appendChild(childMenu);
+
+    } else {
+      const a = document.createElement("a");
+a.href = item.link;
+a.textContent = item.text; // ✅ แสดงเฉพาะชื่อ
+li.appendChild(a);
+    }
+
+    ul.appendChild(li);
+  });
+
+  return ul;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const menuBox = document.getElementById("dynamicMenu");
+  if (!menuBox) return;
+
+  menuBox.innerHTML = "";
+  menuBox.appendChild(createMenu(menuData));
+
+  const currentPage = window.location.pathname.split("/").pop() || "xray.html";
+  menuBox.querySelectorAll("a").forEach(a => {
+    const hrefPage = a.getAttribute("href");
+    if (hrefPage === currentPage) {
+      a.classList.add("active");
+
+      let parent = a.parentElement;
+      while (parent && parent !== menuBox) {
+        if (parent.classList && parent.classList.contains("child-menu")) {
+          parent.classList.add("open");
+
+          const label = parent.previousElementSibling;
+          if (label) {
+            const icon = label.querySelector(".icon");
+            if (icon) icon.textContent = "−";
+          }
+        }
+        parent = parent.parentElement;
+      }
+    }
+  });
+});
+
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+</body>
+
+</html>

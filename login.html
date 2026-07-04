@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="stylesheet" href="transition.css">
+    <meta charset="utf-8">
+    <title>R&B Medical</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+
+    <!-- Favicon -->
+    <link href="8.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet"> 
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="animate.min.css" rel="stylesheet">
+    <link href="owl.carousel.min.css" rel="stylesheet">
+    <link href="tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="style.css" rel="stylesheet">
+</head>
+    <style>
+  html, body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background-image: url("pic/background.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
+      .nav-logo {
+            width: 50px;
+
+     .page-headers {
+    background: url(https://img2.pic.in.th/pic/065dca9c28b2bab87fc4238e7756a620.png) top center no-repeat;
+    background-size: cover;
+    text-shadow: 0 0 30px rgba(0, 0, 0, .1);
+}
+        }
+
+        .navbar-toggler {
+            border: none;
+            background-color: transparent;
+            margin-left: auto;
+        }
+
+        .navbar-toggler-icon {
+            background-image: url('data:image/svg+xml;charset=UTF8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="black"%3E%3Cpath stroke="rgba%280, 0, 0, 0.7%29" stroke-width="3" stroke-linecap="round" stroke-miterlimit="10" d="M4 7h22M4 15h22M4 23h22"/%3E%3C/svg%3E');
+        }
+    .container-login{
+          top: 50%;
+     
+      width: 30%;
+      /* กำหนดความกว้าง */
+      max-width: 400px;
+      /* จำกัดความกว้างสูงสุด */
+      padding: 20px;
+      /* ระยะห่างด้านในของ modal */
+      margin-left: 200px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      /* เงาของ modal */
+        margin-top: 200px;
+    }
+    @media(max-width: 728px){
+        body{
+            display:  none;
+    }
+
+   
+</style>
+<body>
+  
+  
+    <!-- Spinner Start -->
+    <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+        <div class="spinner-grow text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+    <!-- Spinner End -->
+
+
+  
+
+    <!-- Navbar Start -->
+    <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top p-0 wow fadeIn" data-wow-delay="0.1s">
+        <img src="https://img5.pic.in.th/file/secure-sv1/8c27b7b1c06a8f089.png" class="nav-logo">
+            <h1 class="fs-4" style="color:darkgreen">R&B Medical Laboratory</h1>
+            <button class="navbar-toggler d-md-none me-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+       
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <div class="navbar-nav ms-auto p-4 p-lg-0">
+                <a href="index.html" class="nav-item nav-link">หน้าหลัก</a>
+               
+                <a href="home.html" class="nav-item nav-link">ผลตรวจสุขภาพออนไลน์</a>
+                 <a href="package.html" class="nav-item nav-link">ข้อเสนอพิเศษ</a>
+                <a href="contact.html" class="nav-item nav-link">ติดต่อเรา</a>
+                <a href="login.html" class="nav-item nav-link text-secondary active">สำหรับเจ้าหน้าที่</a>
+                </div>
+              
+    </nav>
+      
+    <!-- Navbar End -->
+<div class="container-login">
+        <div class="login-box ms-2">
+            <h3 class="text-center">เข้าสู่ระบบ</h3>
+            <form onsubmit="return validateLogin()">
+                <div class="mb-3">
+                    <label for="username" class="form-label">ชื่อผู้ใช้</label>
+                    <input type="text" class="form-control" id="username" required>
+                </div>
+                <div class="mb-3 text-center">
+                    <label for="password" class="form-label">รหัสผ่าน</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">เข้าสู่ระบบ</button>
+            </form>
+          
+        </div>
+        <div class="container-fluid mt-5">
+        <footer class="d-flex justify-content-between py-3 border-top">
+            <div>
+               
+            </div>
+            <div id="datetime" class="text-footer"></div>
+        </footer>
+    </div>
+    </div>
+</div>
+  <!-- Footer Start -->
+    <div class="container-fluid bg-secondary text-light footer mt-5 pt-5 wow fadeIn" data-wow-delay="0.1s">
+       
+        <div class="container">
+            <div class="copyright">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                        &copy; <a class="border-bottom" href="#">อาร์ แอนด์ บี</a>, คลินิคเทคนิคการแพทย์.
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                      <a href="https://lin.ee/6KvgXbZ"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/th.png" alt="เพิ่มเพื่อน" height="36" border="0"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+    <!-- Footer End -->
+
+
+  
+
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="wow.min.js"></script>
+    <script src="easing.min.js"></script>
+    <script src="waypoints.min.js"></script>
+    <script src="counterup.min.js"></script>
+    <script src="owl.carousel.min.js"></script>
+    <script src="moment.min.js"></script>
+    <script src="moment-timezone.min.js"></script>
+    <script src="tempusdominus-bootstrap-4.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="main.js"></script>
+    <script>
+
+
+    </script>
+
+    <script>
+        function updateDateTime() {
+            const now = new Date();
+            const date = now.toLocaleDateString('th-TH');
+            const time = now.toLocaleTimeString('th-TH');
+            document.getElementById('datetime').textContent = `${date} ${time}`;
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+    </script>
+    <script>
+        function validateLogin() {
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+
+            if (username === "admin" && password === "666666") {
+                alert("เข้าสู่ระบบสำเร็จ!");
+                window.location.href = "admin.html"; // เปลี่ยนเป็นหน้าหลักของระบบ
+                return false;
+            } else {
+                alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!");
+                return false;
+            }
+        }
+    </script>
+        </body>
+        </html>
