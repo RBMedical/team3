@@ -60,6 +60,8 @@ export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = 
   const [printDialog, setPrintDialog] = useState(false);
   const [specimenFilterOpen, setSpecimenFilterOpen] = useState(false);
   const [selectedSpecimens, setSelectedSpecimens] = useState<Set<string>>(new Set());
+  const [testStickers, setTestStickers] = useState<StickerItem[]>([]);
+  const [testStickersLoading, setTestStickersLoading] = useState(false);
 
   const statusEl = useRef<HTMLDivElement>(null);
 
@@ -616,13 +618,26 @@ ${stickerHTML}
           })}
         </div>
         <div className="printer-box">
-          <button className="success full" onClick={() => {
-            if (!stickers.length) { setStatusMsg("ไม่มีสติกเกอร์ที่จะพิมพ์", false); return; }
-            // เปิด filter modal พร้อม pre-select ทุก specimen
-            setSelectedSpecimens(new Set(stickers.map(s => s.specimen)));
+          <button className="success full" onClick={async () => {
+            if (!currentRow?.HN) { setStatusMsg("กรุณาเลือกข้อมูลก่อนพิมพ์", false); return; }
+            setTestStickersLoading(true);
+            try {
+              const result = await appScriptRequest<{ ok: boolean; stickers?: StickerItem[] }>({
+                action: "getTestStickers",
+                hn: String(currentRow.HN).trim(),
+              }, "กำลังโหลดรายการ specimen...");
+              const items = (result.ok && result.stickers?.length) ? result.stickers : [];
+              setTestStickers(items);
+              setSelectedSpecimens(new Set(items.map(s => s.specimenCode)));
+            } catch {
+              setTestStickers([]);
+              setSelectedSpecimens(new Set());
+            } finally {
+              setTestStickersLoading(false);
+            }
             setSpecimenFilterOpen(true);
           }}>
-            <Printer size={14} />พิมพ์
+            <Printer size={14} />{testStickersLoading ? "กำลังโหลด..." : "พิมพ์"}
           </button>
           <small>กรุณาตรวจสอบข้อมูลก่อนพิมพ์</small>
         </div>
@@ -724,23 +739,23 @@ ${stickerHTML}
 
       {/* ── Specimen Filter Modal ───────────────────────────── */}
       {specimenFilterOpen && (() => {
-        // unique specimen list จาก stickers ปัจจุบัน
+        // unique specimen list จาก testStickers (key = specimenCode)
         const uniqueSpecimens = Array.from(
-          new Map(stickers.map(s => [s.specimen, s])).values()
+          new Map(testStickers.map(s => [s.specimenCode, s])).values()
         );
-        const allSelected = uniqueSpecimens.every(s => selectedSpecimens.has(s.specimen));
+        const allSelected = uniqueSpecimens.length > 0 && uniqueSpecimens.every(s => selectedSpecimens.has(s.specimenCode));
 
-        function toggleSpecimen(name: string) {
+        function toggleSpecimen(code: string) {
           setSelectedSpecimens(prev => {
             const next = new Set(prev);
-            next.has(name) ? next.delete(name) : next.add(name);
+            next.has(code) ? next.delete(code) : next.add(code);
             return next;
           });
         }
 
         function confirmPrint() {
           setSpecimenFilterOpen(false);
-          const filtered = stickers.filter(s => selectedSpecimens.has(s.specimen));
+          const filtered = testStickers.filter(s => selectedSpecimens.has(s.specimenCode));
           if (!filtered.length) { setStatusMsg("ไม่มี specimen ที่เลือก", false); return; }
           printStickers(filtered);
         }
@@ -800,7 +815,7 @@ ${stickerHTML}
               }}>
                 <button
                   onClick={() => setSelectedSpecimens(
-                    allSelected ? new Set() : new Set(uniqueSpecimens.map(s => s.specimen))
+                    allSelected ? new Set() : new Set(uniqueSpecimens.map(s => s.specimenCode))
                   )}
                   style={{
                     display: "flex", alignItems: "center", gap: 6,
@@ -835,13 +850,14 @@ ${stickerHTML}
 
               {/* Specimen list */}
               <div style={{ padding: "8px 12px 4px", maxHeight: 280, overflowY: "auto" }}>
-                {uniqueSpecimens.map((s, i) => {
-                  const checked = selectedSpecimens.has(s.specimen);
-                  const count   = stickers.filter(x => x.specimen === s.specimen).length;
+                {uniqueSpecimens.length === 0
+                  ? <p style={{ textAlign: "center", color: "#8a9baa", fontSize: "0.75rem", padding: "20px 0" }}>ไม่พบข้อมูล specimen</p>
+                  : uniqueSpecimens.map((s, i) => {
+                  const checked = selectedSpecimens.has(s.specimenCode);
                   return (
                     <button
                       key={i}
-                      onClick={() => toggleSpecimen(s.specimen)}
+                      onClick={() => toggleSpecimen(s.specimenCode)}
                       style={{
                         width: "100%", display: "flex", alignItems: "center", gap: 12,
                         padding: "10px 12px", borderRadius: 9, marginBottom: 5,
@@ -863,21 +879,24 @@ ${stickerHTML}
                           </svg>
                         )}
                       </div>
-                      {/* Label */}
+                      {/* Label — แสดงทั้ง specimen name และ code */}
                       <span style={{
                         flex: 1, fontSize: "0.78rem", fontWeight: checked ? 700 : 500,
                         color: checked ? "#0b4f61" : "#3a4d5e",
                       }}>
                         {s.specimen}
+                        <span style={{ fontSize: "0.65rem", color: "#8a9baa", marginLeft: 6 }}>
+                          [{s.specimenCode}]
+                        </span>
                       </span>
-                      {/* Count badge */}
+                      {/* Barcode preview */}
                       <span style={{
                         fontSize: "0.6rem", fontWeight: 700,
                         background: checked ? "#109cbe" : "#e8eef3",
                         color: checked ? "#fff" : "#667789",
                         padding: "2px 8px", borderRadius: 999,
                       }}>
-                        {count} ใบ
+                        {s.barcode}
                       </span>
                     </button>
                   );
