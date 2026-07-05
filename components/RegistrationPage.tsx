@@ -625,7 +625,7 @@ ${stickerHTML}
               const result = await appScriptRequest<{ ok: boolean; stickers?: StickerItem[] }>({
                 action: "getTestStickers",
                 hn: String(currentRow.HN).trim(),
-              }, "กำลังโหลดรายการ specimen...");
+              });
               const items = (result.ok && result.stickers?.length) ? result.stickers : [];
               setTestStickers(items);
               setSelectedSpecimens(new Set(items.map(s => s.specimenCode)));
