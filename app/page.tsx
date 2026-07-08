@@ -27,11 +27,26 @@ export default function Home() {
 
   const [exporting, setExporting] = useState(false);
 
-  // ── ดึง Detail A1 ตอน mount ──────────────────────────────────
+  // ── ดึง Detail A1 ตอน mount (retry กัน network สะดุด) ────────
   React.useEffect(() => {
-    appScriptRequest<{ ok: boolean; name?: string }>({ action: "getDetailName" })
-      .then(res => { if (res.ok && res.name) setDetailName(res.name); })
-      .catch(() => { });
+    let cancelled = false;
+    async function fetchDetailName(attempt = 0) {
+      try {
+        const res = await appScriptRequest<{ ok: boolean; name?: string }>({ action: "getDetailName" });
+        if (!cancelled && res.ok && res.name) {
+          setDetailName(res.name);
+          return;
+        }
+        throw new Error("empty");
+      } catch {
+        // retry สูงสุด 3 ครั้ง เว้นระยะ 1.5 วินาที
+        if (!cancelled && attempt < 3) {
+          setTimeout(() => fetchDetailName(attempt + 1), 1500);
+        }
+      }
+    }
+    fetchDetailName();
+    return () => { cancelled = true; };
   }, []);
 
   async function handleExportExcel() {
