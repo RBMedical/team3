@@ -2,16 +2,17 @@
 
 import React, { useState } from "react";
 import {
-  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download,
+  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Banknote,
 } from "lucide-react";
 import { RegistrationPage } from "@/components/RegistrationPage";
 import { appScriptRequest } from "@/lib/api";
 import { ReportPage } from "@/components/ReportPage";
 import { SpecimenModal } from "@/components/SpecimenModal";
 import { PersonalDetailModal } from "@/components/PersonalDetailModal";
+import { FinancePage } from "@/components/FinancePage";
 import { useToast } from "@/hooks/use-toast";
 
-type Page = "registration" | "report";
+type Page = "registration" | "report" | "finance";
 
 export default function Home() {
   const { toast } = useToast();
@@ -323,6 +324,13 @@ export default function Home() {
             <User size={16} />
             <span>Personal</span>
           </button>
+          <button
+            className={`menu-item${activePage === "finance" ? " active" : ""}`}
+            onClick={() => handleNav("finance")}
+          >
+            <Banknote size={16} />
+            <span>การเงิน</span>
+          </button>
 
           {/* Export button — ล่างสุดของ sidebar */}
           <div style={{ flex: 1 }} />
@@ -367,13 +375,19 @@ export default function Home() {
 
         {/* Registration Page */}
         <section className={`workspace page${activePage === "registration" ? " active" : ""}`} id="registrationPage">
-          <RegistrationPage onCountsUpdate={setCounts} onOpenPersonal={openPersonalByHn} detailName={detailName} />
+          <RegistrationPage onCountsUpdate={setCounts} onOpenPersonal={openPersonalByHn} />
         </section>
 
         {/* Report Page */}
         <section className={`workspace page${activePage === "report" ? " active" : ""}`} id="reportPage"
           style={{ display: activePage === "report" ? "block" : "none", flex: 1, minHeight: 0 }}>
           <ReportPage />
+        </section>
+
+        {/* Finance Page */}
+        <section className={`workspace page${activePage === "finance" ? " active" : ""}`} id="financePage"
+          style={{ display: activePage === "finance" ? "block" : "none", flex: 1, minHeight: 0 }}>
+          <FinancePage orgName={detailName} />
         </section>
       </main>
 
@@ -382,6 +396,10 @@ export default function Home() {
         open={personalOpen}
         initialHn={personalHn}
         onClose={() => setPersonalOpen(false)}
+        onGoFinance={() => {
+          setPersonalOpen(false);
+          setActivePage("finance");
+        }}
       />
 
       {/* Specimen Modal */}
