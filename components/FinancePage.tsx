@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Banknote, RefreshCw, Printer, X, Receipt, AlertTriangle } from "lucide-react";
+import { Banknote, RefreshCw, Printer, X, Receipt, AlertTriangle, FileText } from "lucide-react";
 import { appScriptRequest } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 
@@ -28,6 +28,9 @@ const fmt = (n: number) =>
 
 const todayThai = () =>
   new Date().toLocaleDateString("th-TH", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+const thaiLongDate = () =>
+  new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
 /* ─── แปลงจำนวนเงินเป็นข้อความภาษาไทย (บาทถ้วน / สตางค์) ── */
 function bahtText(amount: number): string {
@@ -208,6 +211,9 @@ export function FinancePage({ orgName = "" }: Props) {
   const [cancelItem, setCancelItem] = useState<FinanceItem | null>(null);
   const [cancelling, setCancelling] = useState(false);
 
+  // Report print
+  const [reportPrinting, setReportPrinting] = useState(false);
+
   /* ── Load list ── */
   const load = useCallback(async () => {
     setLoading(true);
@@ -312,6 +318,100 @@ export function FinancePage({ orgName = "" }: Props) {
     }
   }
 
+  /* ── Print report (A4 portrait) from Recieve sheet ── */
+  async function printReport() {
+    if (reportPrinting) return;
+    setReportPrinting(true);
+    try {
+      const res = await appScriptRequest<{
+        ok: boolean;
+        customer?: string;
+        rows?: { receiptNo: string; hn: string; name: string; amount: number; status: string }[];
+        netTotal?: number;
+        cancelledCount?: number;
+      }>({ action: "getReceiveReport" });
+
+      if (!res.ok) {
+        toast({ title: "โหลดข้อมูลรายงานไม่สำเร็จ", variant: "destructive" });
+        return;
+      }
+
+      const rows = res.rows || [];
+      const rowsHtml = rows.length
+        ? rows.map(r => `
+            <tr>
+              <td class="c">${r.receiptNo || "-"}</td>
+              <td class="c">${r.hn || "-"}</td>
+              <td>${r.name || "-"}</td>
+              <td class="r">${fmt(r.amount)}</td>
+              <td class="c">${r.status || "-"}</td>
+            </tr>`).join("")
+        : `<tr><td colspan="5" class="empty">ไม่มีข้อมูล</td></tr>`;
+
+      const reportHtml = `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4 portrait; margin: 14mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sarabun', sans-serif; color: #1a2d3e; }
+  .rp-title { font-size: 16px; font-weight: 800; }
+  .rp-cust { font-size: 13px; font-weight: 600; color: #333; margin-top: 2mm; }
+  .rp-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10mm; }
+  .rp-table th { background: #eef1f4; color: #333; padding: 2.5mm 2mm; font-weight: 700;
+                 border: 0.5px solid #9aa8b5; }
+  .rp-table td { padding: 2.5mm 2mm; border: 0.5px solid #b0bdc8; }
+  .rp-table .c { text-align: center; }
+  .rp-table .r { text-align: right; }
+  .rp-table .empty { text-align: center; color: #999; padding: 8mm; }
+  .rp-summary { margin-top: 16mm; font-size: 13px; line-height: 2.2; }
+  .rp-summary .lbl { display: inline-block; min-width: 48mm; }
+  .rp-summary .unit { margin-left: 4mm; color: #555; }
+  .rp-sign { margin-top: 24mm; font-size: 13px; }
+</style></head>
+<body>
+  <div class="rp-title">รายงานยอดขายวันที่ ${thaiLongDate()}</div>
+  <div class="rp-cust">${res.customer || "-"}</div>
+  <table class="rp-table">
+    <thead>
+      <tr>
+        <th style="width:20%">เลขที่ใบเสร็จ</th>
+        <th style="width:15%">HN</th>
+        <th>ชื่อ นามสกุล</th>
+        <th style="width:16%">ยอดชำระ</th>
+        <th style="width:14%">สถานะ</th>
+      </tr>
+    </thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>
+  <div class="rp-summary">
+    <div><span class="lbl">ยอดขายสุทธิ</span> <b>${fmt(res.netTotal || 0)}</b> <span class="unit">บาท</span></div>
+    <div><span class="lbl">ยกเลิกใบเสร็จจำนวน</span> <b>${res.cancelledCount || 0}</b> <span class="unit">บิล</span></div>
+  </div>
+  <div class="rp-sign">ลงชื่อ .....................................ผู้รับผิดชอบ / หัวหน้าหน่วย</div>
+</body></html>`;
+
+      // พิมพ์ผ่าน hidden iframe
+      const iframe = document.createElement("iframe");
+      iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
+      document.body.appendChild(iframe);
+      const doc = iframe.contentWindow!.document;
+      doc.open(); doc.write(reportHtml); doc.close();
+
+      let fired = false;
+      const firePrint = () => {
+        try { iframe.contentWindow!.focus(); iframe.contentWindow!.print(); } catch {}
+      };
+      iframe.onload = () => { if (!fired) { fired = true; firePrint(); } };
+      setTimeout(() => { if (!fired) { fired = true; firePrint(); } }, 500);
+      setTimeout(() => { document.body.removeChild(iframe); }, 1200);
+    } catch {
+      toast({ title: "เชื่อมต่อไม่สำเร็จ", variant: "destructive" });
+    } finally {
+      setReportPrinting(false);
+    }
+  }
+
   /* ── Status badge ── */
   function statusBadge(status: string) {
     const map: Record<string, { bg: string; bd: string; color: string }> = {
@@ -356,10 +456,23 @@ export function FinancePage({ orgName = "" }: Props) {
             {items.length} รายการ
           </span>
           <button
+            onClick={printReport}
+            disabled={reportPrinting}
+            title="พิมพ์รายงานยอดขาย"
+            style={{
+              marginLeft: "auto", height: 26, padding: "0 10px", borderRadius: 6,
+              border: "1px solid #0c6075", background: "#0c6075", color: "#fff",
+              cursor: reportPrinting ? "wait" : "pointer", display: "flex", alignItems: "center", gap: 5,
+              fontSize: "0.68rem", fontWeight: 700,
+            }}
+          >
+            <FileText size={12} />{reportPrinting ? "กำลังพิมพ์..." : "รายงาน"}
+          </button>
+          <button
             onClick={load}
             disabled={loading}
             style={{
-              marginLeft: "auto", height: 26, padding: "0 10px", borderRadius: 6,
+              height: 26, padding: "0 10px", borderRadius: 6,
               border: "1px solid #cfd9e5", background: "#fff", color: "#667789",
               cursor: loading ? "wait" : "pointer", display: "flex", alignItems: "center", gap: 5,
               fontSize: "0.68rem", fontWeight: 600,
