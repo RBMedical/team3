@@ -29,6 +29,64 @@ const fmt = (n: number) =>
 const todayThai = () =>
   new Date().toLocaleDateString("th-TH", { day: "2-digit", month: "2-digit", year: "numeric" });
 
+/* ─── แปลงจำนวนเงินเป็นข้อความภาษาไทย (บาทถ้วน / สตางค์) ── */
+function bahtText(amount: number): string {
+  const num = Math.abs(Number(amount) || 0);
+  const baht = Math.floor(num);
+  const satang = Math.round((num - baht) * 100);
+
+  const digits = ["ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];
+  const places = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"];
+
+  function readGroup(numStr: string): string {
+    // อ่านเลขไม่เกิน 7 หลัก (รองรับหลักล้าน)
+    let result = "";
+    const len = numStr.length;
+    for (let i = 0; i < len; i++) {
+      const d = parseInt(numStr[i], 10);
+      const place = len - i - 1;
+      if (d === 0) continue;
+      if (place === 0 && d === 1 && len > 1) {
+        result += "เอ็ด";
+      } else if (place === 1 && d === 2) {
+        result += "ยี่" + places[place];
+      } else if (place === 1 && d === 1) {
+        result += places[place];
+      } else {
+        result += digits[d] + places[place];
+      }
+    }
+    return result;
+  }
+
+  function readNumber(n: number): string {
+    if (n === 0) return "";
+    const s = String(n);
+    // แยกเป็นกลุ่มละ 6 หลัก (หลักล้าน)
+    if (s.length > 6) {
+      const millions = Math.floor(n / 1000000);
+      const remainder = n % 1000000;
+      let txt = readNumber(millions) + "ล้าน";
+      if (remainder > 0) txt += readGroup(String(remainder));
+      return txt;
+    }
+    return readGroup(s);
+  }
+
+  let text = "";
+  if (baht === 0 && satang === 0) {
+    text = "ศูนย์บาทถ้วน";
+  } else {
+    if (baht > 0) text += readNumber(baht) + "บาท";
+    if (satang > 0) {
+      text += readNumber(satang) + "สตางค์";
+    } else if (baht > 0) {
+      text += "ถ้วน";
+    }
+  }
+  return "(" + text + ")";
+}
+
 /* ─── Receipt print HTML (A4 landscape, ต้นฉบับ + สำเนา) ── */
 function buildReceiptHtml(item: FinanceItem, receiptNo: string, dateStr: string, orgName: string) {
   const rowsHtml = item.items
@@ -62,11 +120,15 @@ function buildReceiptHtml(item: FinanceItem, receiptNo: string, dateStr: string,
         <tbody>${rowsHtml}</tbody>
         <tfoot>
           <tr>
-            <td colspan="2" class="r total-label">ยอดชำระสุทธิ</td>
+            <td colspan="2" class="r total-label">
+              ยอดชำระสุทธิ
+              <span class="baht-text">${bahtText(item.amount)}</span>
+            </td>
             <td class="r total-val">${fmt(item.amount)}</td>
           </tr>
         </tfoot>
       </table>
+      <div class="rc-spacer"></div>
       <div class="rc-sign">
         <div class="sign-box">
           <div class="sign-line"></div>
@@ -87,30 +149,36 @@ function buildReceiptHtml(item: FinanceItem, receiptNo: string, dateStr: string,
 <style>
   @page { size: A4 landscape; margin: 8mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
   body { font-family: 'Sarabun', sans-serif; color: #1a2d3e; }
-  .sheet { display: flex; width: 100%; }
-  .half { width: 50%; padding: 6mm 8mm; }
+  .sheet { display: flex; width: 100%; height: 194mm; }
+  .half { width: 50%; padding: 6mm 8mm; display: flex; flex-direction: column; height: 100%; }
   .half + .half { border-left: 1.5px dashed #999; }
-  .rc-head { text-align: center; margin-bottom: 5mm; position: relative; }
+  .rc-head { text-align: center; margin-bottom: 8mm; position: relative; flex-shrink: 0; }
   .rc-org { font-size: 15px; font-weight: 800; color: #0c6075; }
   .rc-title { font-size: 13px; font-weight: 700; margin-top: 1mm; }
   .rc-title .en { font-weight: 400; color: #667789; font-size: 11px; }
   .rc-copy { position: absolute; top: 0; right: 0; font-size: 10px; font-weight: 700;
              border: 1px solid #0c6075; color: #0c6075; border-radius: 4px; padding: 1px 8px; }
-  .rc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm 6mm;
-             font-size: 11px; margin-bottom: 4mm; }
+  .rc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5mm 6mm;
+             font-size: 11px; margin-bottom: 8mm; flex-shrink: 0; }
   .rc-meta span { color: #667789; }
-  .rc-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .rc-table { width: 100%; border-collapse: collapse; font-size: 11px; flex-shrink: 0; }
   .rc-table th { background: #0c6075; color: #fff; padding: 2mm; font-weight: 700;
                  border: 0.5px solid #0c6075; }
   .rc-table td { padding: 1.8mm 2mm; border: 0.5px solid #b8c8d4; }
   .rc-table .c { text-align: center; }
   .rc-table .r { text-align: right; }
   .total-label { font-weight: 700; background: #eef6f8; }
-  .total-val { font-weight: 800; font-size: 13px; background: #eef6f8; color: #0c6075; }
-  .rc-sign { display: flex; justify-content: space-around; margin-top: 12mm; font-size: 11px; }
+  .total-label .baht-text { display: block; font-weight: 600; font-size: 10px;
+                            color: #0c6075; margin-top: 1mm; }
+  .total-val { font-weight: 800; font-size: 13px; background: #eef6f8; color: #0c6075;
+               vertical-align: top; }
+  .rc-spacer { flex: 1 1 auto; min-height: 8mm; }
+  .rc-sign { display: flex; justify-content: space-around; font-size: 11px;
+             flex-shrink: 0; padding-bottom: 4mm; }
   .sign-box { text-align: center; width: 38%; }
-  .sign-line { border-bottom: 1px dotted #667789; margin-bottom: 2mm; height: 8mm; }
+  .sign-line { border-bottom: 1px dotted #667789; margin-bottom: 2mm; height: 10mm; }
 </style>
 </head>
 <body>
@@ -477,8 +545,11 @@ export function FinancePage({ orgName = "" }: Props) {
                   <tr>
                     <td colSpan={2} style={{ textAlign: "right", padding: "8px 12px", fontWeight: 700, background: "#eef6f8", borderRadius: "0 0 0 8px" }}>
                       ยอดชำระสุทธิ
+                      <span style={{ display: "block", fontSize: "0.62rem", fontWeight: 600, color: "#0c6075", marginTop: 2 }}>
+                        {bahtText(payItem.amount)}
+                      </span>
                     </td>
-                    <td style={{ textAlign: "right", padding: "8px 12px", fontWeight: 800, fontSize: "0.85rem", color: "#0c6075", background: "#eef6f8" }}>
+                    <td style={{ textAlign: "right", padding: "8px 12px", fontWeight: 800, fontSize: "0.85rem", color: "#0c6075", background: "#eef6f8", verticalAlign: "top" }}>
                       {fmt(payItem.amount)}
                     </td>
                   </tr>
