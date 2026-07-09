@@ -750,7 +750,7 @@ button.add-new:hover {
   border: 1px solid #c8d8e4;
   border-radius: 6px;
   overflow: hidden;
-  height: var(--cnt-input-h);
+  height: 30px;
 }
 
 .follow-summary-card .fsc-label {
