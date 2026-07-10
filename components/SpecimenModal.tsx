@@ -280,8 +280,8 @@ export function SpecimenModal({ open, onClose, onCountsUpdate }: SpecimenModalPr
     }
   }
 
-  const groupsA = [...new Set(testData.map((r) => r.colF).filter(Boolean))];
-  const groupsB = [...new Set(testData.filter((r) => r.colF === groupA).map((r) => r.colB).filter(Boolean))];
+  const groupsA = [...new Set(testData.map((r) => r.colE).filter(Boolean))];
+  const groupsB = [...new Set(testData.filter((r) => r.colE === groupA).map((r) => r.colC).filter(Boolean))];
 
   function onGroupAChange(v: string) {
     setGroupA(v);
@@ -291,8 +291,8 @@ export function SpecimenModal({ open, onClose, onCountsUpdate }: SpecimenModalPr
 
   function onGroupBChange(v: string) {
     setGroupB(v);
-    const match = testData.find((r) => r.colF === groupA && r.colB === v);
-    setSpecimenCode(match?.colE || "");
+    const match = testData.find((r) => r.colE === groupA && r.colC === v);
+    setSpecimenCode(match?.colD || "");
   }
 
   function onBarcodeInput(v: string) {
