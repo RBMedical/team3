@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import {
-  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Banknote,
+  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Banknote, LogOut,
 } from "lucide-react";
 import { RegistrationPage } from "@/components/RegistrationPage";
 import { appScriptRequest } from "@/lib/api";
@@ -10,6 +10,7 @@ import { ReportPage } from "@/components/ReportPage";
 import { SpecimenModal } from "@/components/SpecimenModal";
 import { PersonalDetailModal } from "@/components/PersonalDetailModal";
 import { FinancePage } from "@/components/FinancePage";
+import { LoginModal, type LoggedInUser } from "@/components/LoginModal";
 import { useToast } from "@/hooks/use-toast";
 
 type Page = "registration" | "report" | "finance";
@@ -24,6 +25,7 @@ export default function Home() {
   const [statusOk, setStatusOk] = useState(true);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [detailName, setDetailName] = useState("");
+  const [loggedInUser, setLoggedInUser] = useState<LoggedInUser | null>(null);
 
   const [exporting, setExporting] = useState(false);
 
@@ -317,6 +319,44 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Logged-in user badge */}
+        {loggedInUser && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8,
+            background: "linear-gradient(135deg, #e8f7fa, #f0fbfc)",
+            border: "1px solid #bee1e8", borderRadius: 10,
+            padding: "7px 10px", marginBottom: 8,
+          }}>
+            <div style={{
+              width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
+              background: "linear-gradient(135deg, #0c6075, #109cbe)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontWeight: 800, fontSize: "0.8rem",
+            }}>
+              {(loggedInUser.stuffName || loggedInUser.username).charAt(0).toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: "0.74rem", fontWeight: 700, color: "#0c6075", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {loggedInUser.stuffName || loggedInUser.username}
+              </div>
+              <div style={{ fontSize: "0.6rem", color: "#5a8a96", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                @{loggedInUser.username}
+              </div>
+            </div>
+            <button
+              onClick={() => setLoggedInUser(null)}
+              title="ออกจากระบบ"
+              style={{
+                width: 26, height: 26, borderRadius: 6, flexShrink: 0,
+                border: "1px solid #cfd9e5", background: "#fff", color: "#8a9baa",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <LogOut size={13} />
+            </button>
+          </div>
+        )}
+
         <nav className="menu">
           <button
             className={`menu-item${activePage === "registration" ? " active" : ""}`}
@@ -422,6 +462,12 @@ export default function Home() {
         open={specimenOpen}
         onClose={() => setSpecimenOpen(false)}
         onCountsUpdate={setCounts}
+      />
+
+      {/* Login Modal — แสดงทุกครั้งที่เปิดโปรแกรม จนกว่าจะ login สำเร็จ */}
+      <LoginModal
+        open={!loggedInUser}
+        onSuccess={(user) => setLoggedInUser(user)}
       />
     </>
   );
