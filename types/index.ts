@@ -40,9 +40,9 @@ export interface QueueRow {
 }
 
 export interface SpecimenTestRow {
-  colB: string;
+  colC: string;
+  colD: string;
   colE: string;
-  colF: string;
 }
 
 export interface SpecimenRow {
