@@ -196,9 +196,10 @@ function buildReceiptHtml(item: FinanceItem, receiptNo: string, dateStr: string,
 /* ─── Component ─────────────────────────────────────────── */
 interface Props {
   orgName?: string;
+  staffName?: string;
 }
 
-export function FinancePage({ orgName = "" }: Props) {
+export function FinancePage({ orgName = "", staffName = "" }: Props) {
   const [items, setItems] = useState<FinanceItem[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -333,7 +334,7 @@ export function FinancePage({ orgName = "" }: Props) {
   </div>
 
   <div class="rf-body">
-    ข้าพเจ้า .............................................. HN. ..................${item.hn}..................
+    ข้าพเจ้า ..........${item.name || ""}.......... HN. ..................${item.hn}..................
   </div>
   <div class="rf-body2">
     ขอยกเลิกธุรกรรมการซื้อรายการตรวจสุขภาพเพิ่มเติม บิลเลขที่ ...${item.receiptNo || "-"}...
@@ -356,14 +357,14 @@ export function FinancePage({ orgName = "" }: Props) {
 
   <div class="rf-sign">
     <div>ลงชื่อ ................................. ผู้ขอคืนเงิน</div>
-    <div class="name">( ............................................. )</div>
+    <div class="name">( ..........${item.name || ""}.......... )</div>
   </div>
 
   <div class="rf-divider"></div>
 
   <div class="rf-officer-title">สำหรับเจ้าหน้าที่</div>
   <div class="rf-officer">
-    ข้าพเจ้า ..............................................(ชื่อเจ้าหน้าที่).................. อนุมัติการคืนเงินของ
+    ข้าพเจ้า ..........${staffName || ""}.......... อนุมัติการคืนเงินของ
   </div>
   <div>
     บิลเลขที่ ....${item.receiptNo || "-"}........ จำนวนเงิน ...............${fmt(item.amount)}............... บาท
