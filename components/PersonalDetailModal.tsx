@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   User, ClipboardList, X, RefreshCw,
   CheckCircle2, Circle, Search, Calendar, Clock,
-  Hash, Activity, Plus, Check, FlaskConical, Banknote,
+  Hash, Activity, Plus, Check, FlaskConical,
 } from "lucide-react";
 import { appScriptRequest } from "@/lib/api";
 
@@ -41,26 +41,25 @@ interface ExtraItem {
   ราคา: string;
 }
 
-interface Props {
-  open: boolean;
-  initialHn?: string;
-  onClose: () => void;
-  onGoFinance?: () => void;
-}
-
 interface TestNameItem {
   name: string;
   price: string;
 }
 
+interface Props {
+  open: boolean;
+  initialHn?: string;
+  onClose: () => void;
+}
+
 /* ─── Component ──────────────────────────────────────────── */
-export function PersonalDetailModal({ open, initialHn = "", onClose, onGoFinance }: Props) {
-  const [query, setQuery]               = useState(initialHn);
-  const [loading, setLoading]           = useState(false);
-  const [result, setResult]             = useState<PersonalDetailResult | null>(null);
-  const [testNames, setTestNames]       = useState<string[]>([]);
+export function PersonalDetailModal({ open, initialHn = "", onClose }: Props) {
+  const [query, setQuery]           = useState(initialHn);
+  const [loading, setLoading]       = useState(false);
+  const [result, setResult]         = useState<PersonalDetailResult | null>(null);
+  const [testNames, setTestNames]   = useState<string[]>([]);
   const [testNameItems, setTestNameItems] = useState<TestNameItem[]>([]);
-  const [extraSaved, setExtraSaved]     = useState<ExtraItem[]>([]);
+  const [extraSaved, setExtraSaved] = useState<ExtraItem[]>([]);
 
   // Add-extra UI
   const [showAdd, setShowAdd]   = useState(false);
@@ -128,7 +127,6 @@ export function PersonalDetailModal({ open, initialHn = "", onClose, onGoFinance
   async function saveExtra() {
     const selectedNames = addItems.filter(v => v.trim());
     if (!selectedNames.length || !data) return;
-    // สร้าง {name, price} objects จาก testNameItems
     const itemsWithPrice = selectedNames.map(name => {
       const found = testNameItems.find(t => t.name === name);
       return { name, price: found?.price || "" };
@@ -637,16 +635,6 @@ export function PersonalDetailModal({ open, initialHn = "", onClose, onGoFinance
             <span style={{ fontSize: "0.63rem", color: "#92680a", background: "#fffbeb", border: "1px solid #f5e0a0", borderRadius: 5, padding: "2px 8px" }}>
               หมายเหตุ: {data.หมายเหตุ}
             </span>
-          )}
-          {onGoFinance && extraSaved.length > 0 && (
-            <button onClick={onGoFinance} style={{
-              height: 29, padding: "0 13px", borderRadius: 7,
-              border: "none", background: "#0c6075",
-              color: "#fff", cursor: "pointer", fontSize: "0.7rem",
-              fontWeight: 700, display: "flex", alignItems: "center", gap: 5,
-            }}>
-              <Banknote size={12} />ไปที่หน้าชำระเงิน
-            </button>
           )}
           <button onClick={onClose} style={{
             height: 29, padding: "0 13px", borderRadius: 7,
