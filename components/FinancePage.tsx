@@ -377,37 +377,42 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
       const doc = iframe.contentWindow!.document;
       doc.open(); doc.write(html); doc.close();
 
-      let fired = false;
-      const firePrint = () => {
+      let done = false;
+      const firePrintAndResolve = () => {
+        if (done) return;
+        done = true;
         try { iframe.contentWindow!.focus(); iframe.contentWindow!.print(); } catch {}
-      };
-      iframe.onload = () => { if (!fired) { fired = true; firePrint(); } };
-      setTimeout(() => { if (!fired) { fired = true; firePrint(); } }, 500);
-      // เก็บ iframe แล้ว resolve เพื่อ run ขั้นตอนต่อไป
-      setTimeout(() => {
-        document.body.removeChild(iframe);
+        // resolve ทันทีหลังสั่งพิมพ์ เพื่อ run ขั้นตอนต่อไปได้ ไม่รอ dialog
         resolve();
-      }, 800);
+        // cleanup iframe แยกภายหลัง (ไม่ block flow)
+        setTimeout(() => {
+          try { document.body.removeChild(iframe); } catch {}
+        }, 60000);
+      };
+      iframe.onload = () => firePrintAndResolve();
+      // fallback เผื่อ onload ไม่ยิง
+      setTimeout(firePrintAndResolve, 800);
     });
   }
 
   async function confirmCancel() {
     if (!cancelItem) return;
+    const item = cancelItem;  // เก็บค่าไว้ กัน null ระหว่าง async
     setCancelling(true);
 
     // ── แทรกการพิมพ์แบบฟอร์มขอคืนเงินก่อน แล้วค่อย run ต่อ ──
-    await printRefundForm(cancelItem);
+    await printRefundForm(item);
 
     try {
       const res = await appScriptRequest<{ ok: boolean; message?: string }>({
         action: "cancelReceipt",
-        receiptNo: cancelItem.receiptNo,
-        hn: cancelItem.hn,
-        name: cancelItem.name,
-        amount: cancelItem.amount,
+        receiptNo: item.receiptNo,
+        hn: item.hn,
+        name: item.name,
+        amount: item.amount,
       });
       if (res.ok) {
-        toast({ title: `ยกเลิกใบเสร็จ ${cancelItem.receiptNo} แล้ว`, variant: "success" });
+        toast({ title: `ยกเลิกใบเสร็จ ${item.receiptNo} แล้ว`, variant: "success" });
         load();
       } else {
         toast({ title: res.message || "ยกเลิกไม่สำเร็จ", variant: "destructive" });
