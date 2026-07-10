@@ -154,7 +154,7 @@ export function LoginModal({ open, onSuccess }: Props) {
               }}
             >
               {m === "login" ? <LogIn size={15} /> : <UserPlus size={15} />}
-              {m === "login" ? "เข้าสู่ระบบ" : "สมัครสมาชิก"}
+              {m === "login" ? "เข้าสู่ระบบ" : "ลงทะเบียน"}
             </button>
           ))}
         </div>
