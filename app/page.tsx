@@ -25,9 +25,27 @@ export default function Home() {
   const [statusOk, setStatusOk] = useState(true);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [detailName, setDetailName] = useState("");
-  const [loggedInUser, setLoggedInUser] = useState<LoggedInUser | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<LoggedInUser | null>(() => {
+    // กู้คืน session ที่ login ไว้ (กัน modal login เด้งซ้ำหลัง print/re-render)
+    if (typeof window !== "undefined") {
+      try {
+        const saved = sessionStorage.getItem("loggedInUser");
+        if (saved) return JSON.parse(saved) as LoggedInUser;
+      } catch {}
+    }
+    return null;
+  });
 
   const [exporting, setExporting] = useState(false);
+
+  // ── sync loggedInUser → sessionStorage ──────────────────────
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (loggedInUser) sessionStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
+      else sessionStorage.removeItem("loggedInUser");
+    } catch {}
+  }, [loggedInUser]);
 
   // ── ดึง Detail A1 ตอน mount (retry กัน network สะดุด) ────────
   React.useEffect(() => {
@@ -442,7 +460,7 @@ export default function Home() {
         {/* Finance Page */}
         <section className={`workspace page${activePage === "finance" ? " active" : ""}`} id="financePage"
           style={{ display: activePage === "finance" ? "block" : "none", flex: 1, minHeight: 0 }}>
-          <FinancePage orgName={detailName} />
+          <FinancePage orgName={detailName} staffName={loggedInUser?.stuffName || ""} />
         </section>
       </main>
 
