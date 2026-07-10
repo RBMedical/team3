@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   User, ClipboardList, X, RefreshCw,
   CheckCircle2, Circle, Search, Calendar, Clock,
-  Hash, Activity, Plus, Check, FlaskConical,
+  Hash, Activity, Plus, Check, FlaskConical, Banknote,
 } from "lucide-react";
 import { appScriptRequest } from "@/lib/api";
 
@@ -50,10 +50,11 @@ interface Props {
   open: boolean;
   initialHn?: string;
   onClose: () => void;
+  onGoFinance?: () => void;
 }
 
 /* ─── Component ──────────────────────────────────────────── */
-export function PersonalDetailModal({ open, initialHn = "", onClose }: Props) {
+export function PersonalDetailModal({ open, initialHn = "", onClose, onGoFinance }: Props) {
   const [query, setQuery]           = useState(initialHn);
   const [loading, setLoading]       = useState(false);
   const [result, setResult]         = useState<PersonalDetailResult | null>(null);
@@ -635,6 +636,16 @@ export function PersonalDetailModal({ open, initialHn = "", onClose }: Props) {
             <span style={{ fontSize: "0.63rem", color: "#92680a", background: "#fffbeb", border: "1px solid #f5e0a0", borderRadius: 5, padding: "2px 8px" }}>
               หมายเหตุ: {data.หมายเหตุ}
             </span>
+          )}
+          {onGoFinance && extraSaved.length > 0 && (
+            <button onClick={onGoFinance} style={{
+              height: 29, padding: "0 13px", borderRadius: 7,
+              border: "none", background: "#0c6075",
+              color: "#fff", cursor: "pointer", fontSize: "0.7rem",
+              fontWeight: 700, display: "flex", alignItems: "center", gap: 5,
+            }}>
+              <Banknote size={12} />ไปที่หน้าชำระเงิน
+            </button>
           )}
           <button onClick={onClose} style={{
             height: 29, padding: "0 13px", borderRadius: 7,
