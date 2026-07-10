@@ -293,9 +293,110 @@ export function FinancePage({ orgName = "" }: Props) {
   }
 
   /* ── Cancel receipt ── */
+  /* ── พิมพ์แบบฟอร์มขอคืนเงิน (A4 portrait) ── */
+  function printRefundForm(item: FinanceItem): Promise<void> {
+    return new Promise((resolve) => {
+      const dateStr = todayThai();
+      const itemsHtml = item.items
+        .map((it, i) => `<tr><td class="c">${i + 1}</td><td>${it.name}</td><td class="r">${fmt(it.price)}</td></tr>`)
+        .join("");
+
+      const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4 portrait; margin: 18mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sarabun', sans-serif; color: #1a2d3e; font-size: 14px; line-height: 1.9; }
+  .rf-title { text-align: right; font-size: 20px; font-weight: 800; margin-bottom: 14mm; }
+  .rf-meta { margin-bottom: 8mm; }
+  .rf-meta .lbl { color: #333; }
+  .rf-body { text-indent: 12mm; margin-bottom: 3mm; }
+  .rf-body2 { margin-bottom: 3mm; }
+  .rf-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 5mm 0 6mm; }
+  .rf-table th { background: #eef1f4; padding: 2mm; border: 0.5px solid #9aa8b5; font-weight: 700; }
+  .rf-table td { padding: 2mm; border: 0.5px solid #b0bdc8; }
+  .rf-table .c { text-align: center; }
+  .rf-table .r { text-align: right; }
+  .rf-sign { text-align: right; margin-top: 12mm; }
+  .rf-sign .name { margin-right: 18mm; }
+  .rf-divider { border-top: 1px dotted #667789; margin: 14mm 0 8mm; }
+  .rf-officer-title { font-weight: 700; margin-bottom: 5mm; }
+  .rf-officer { text-indent: 12mm; }
+</style></head>
+<body>
+  <div class="rf-title">แบบฟอร์มขอคืนเงิน</div>
+
+  <div class="rf-meta">
+    <div><span class="lbl">วันที่</span> &nbsp; ${dateStr}</div>
+    <div><span class="lbl">หน่วย</span> &nbsp; ${orgName || "-"}</div>
+  </div>
+
+  <div class="rf-body">
+    ข้าพเจ้า .............................................. HN. ..................${item.hn}..................
+  </div>
+  <div class="rf-body2">
+    ขอยกเลิกธุรกรรมการซื้อรายการตรวจสุขภาพเพิ่มเติม บิลเลขที่ ...${item.receiptNo || "-"}...
+  </div>
+
+  <table class="rf-table">
+    <thead>
+      <tr><th style="width:12%">ลำดับ</th><th>รายการตรวจ</th><th style="width:24%">จำนวนเงิน (บาท)</th></tr>
+    </thead>
+    <tbody>${itemsHtml}</tbody>
+    <tfoot>
+      <tr><td colspan="2" class="r"><b>รวมเป็นเงิน</b></td><td class="r"><b>${fmt(item.amount)}</b></td></tr>
+    </tfoot>
+  </table>
+
+  <div class="rf-body2">
+    จำนวนเงิน ...............${fmt(item.amount)}............... บาท ( ${bahtText(item.amount)} )
+  </div>
+  <div class="rf-body2">และยืนยันว่าได้รับเงินคืนครบถ้วน</div>
+
+  <div class="rf-sign">
+    <div>ลงชื่อ ................................. ผู้ขอคืนเงิน</div>
+    <div class="name">( ............................................. )</div>
+  </div>
+
+  <div class="rf-divider"></div>
+
+  <div class="rf-officer-title">สำหรับเจ้าหน้าที่</div>
+  <div class="rf-officer">
+    ข้าพเจ้า ..............................................(ชื่อเจ้าหน้าที่).................. อนุมัติการคืนเงินของ
+  </div>
+  <div>
+    บิลเลขที่ ....${item.receiptNo || "-"}........ จำนวนเงิน ...............${fmt(item.amount)}............... บาท
+  </div>
+</body></html>`;
+
+      const iframe = document.createElement("iframe");
+      iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
+      document.body.appendChild(iframe);
+      const doc = iframe.contentWindow!.document;
+      doc.open(); doc.write(html); doc.close();
+
+      let fired = false;
+      const firePrint = () => {
+        try { iframe.contentWindow!.focus(); iframe.contentWindow!.print(); } catch {}
+      };
+      iframe.onload = () => { if (!fired) { fired = true; firePrint(); } };
+      setTimeout(() => { if (!fired) { fired = true; firePrint(); } }, 500);
+      // เก็บ iframe แล้ว resolve เพื่อ run ขั้นตอนต่อไป
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        resolve();
+      }, 800);
+    });
+  }
+
   async function confirmCancel() {
     if (!cancelItem) return;
     setCancelling(true);
+
+    // ── แทรกการพิมพ์แบบฟอร์มขอคืนเงินก่อน แล้วค่อย run ต่อ ──
+    await printRefundForm(cancelItem);
+
     try {
       const res = await appScriptRequest<{ ok: boolean; message?: string }>({
         action: "cancelReceipt",
