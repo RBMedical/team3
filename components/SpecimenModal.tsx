@@ -411,7 +411,6 @@ export function SpecimenModal({ open, onClose, onCountsUpdate }: SpecimenModalPr
   function buildKeys() {
     return [
       ...pendingRows.map((_, i) => `p:${i}`),
-      ...specimenRows.map((r, i) => `s:${r.rowIndex ?? i}`),
     ];
   }
 
@@ -577,8 +576,8 @@ export function SpecimenModal({ open, onClose, onCountsUpdate }: SpecimenModalPr
                     </tr>
                   </thead>
                   <tbody>
-                    {specimenRows.length === 0 && pendingRows.length === 0
-                      ? <tr><td colSpan={5} className="specimen-table-empty">ยังไม่มีข้อมูล</td></tr>
+                    {pendingRows.length === 0
+                      ? <tr><td colSpan={5} className="specimen-table-empty">ยังไม่มีรายการที่รอบันทึก</td></tr>
                       : <>
                           {pendingRows.map((r, i) => {
                             const key = `p:${i}`;
@@ -589,20 +588,6 @@ export function SpecimenModal({ open, onClose, onCountsUpdate }: SpecimenModalPr
                                 </td>
                                 <td>{r.hn}</td>
                                 <td style={{ color: "#999", fontStyle: "italic" }}>{r.name}</td>
-                                <td>{r.specimenType}</td>
-                                <td>{r.specimenGroup}</td>
-                              </tr>
-                            );
-                          })}
-                          {specimenRows.map((r, i) => {
-                            const key = `s:${r.rowIndex ?? i}`;
-                            return (
-                              <tr key={key} style={{ background: selectedKeys.has(key) ? "#fde8e8" : undefined }}>
-                                <td style={{ textAlign: "center" }}>
-                                  <input type="checkbox" checked={selectedKeys.has(key)} onChange={() => toggleKey(key)} style={{ cursor: "pointer", accentColor: "#c63742" }} />
-                                </td>
-                                <td>{r.hn}</td>
-                                <td>{r.name}</td>
                                 <td>{r.specimenType}</td>
                                 <td>{r.specimenGroup}</td>
                               </tr>
