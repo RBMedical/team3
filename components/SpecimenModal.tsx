@@ -530,6 +530,20 @@ export function SpecimenModal({ open, onClose, onCountsUpdate }: SpecimenModalPr
             <div className="specimen-block">
               <div className="specimen-block-header">
                 <Table2 size={14} /><span>Specimen List</span>
+                {pendingRows.length > 0 && (
+                  <span
+                    title="รายการที่ยังไม่ได้บันทึกลง Sheet"
+                    style={{
+                      marginLeft: 8, fontSize: 11, fontWeight: 700,
+                      color: "#92680a", background: "#fff8e1",
+                      border: "1px solid #f0d060", borderRadius: 999,
+                      padding: "2px 9px", whiteSpace: "nowrap",
+                      display: "inline-flex", alignItems: "center", gap: 4,
+                    }}
+                  >
+                    ● ยังไม่บันทึก {pendingRows.length}
+                  </span>
+                )}
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
                   <button
                     onClick={toggleAll}
