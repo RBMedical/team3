@@ -395,13 +395,15 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
     });
   }
 
-  async function confirmCancel() {
+  async function confirmCancel(withRefundPrint: boolean) {
     if (!cancelItem) return;
     const item = cancelItem;  // เก็บค่าไว้ กัน null ระหว่าง async
     setCancelling(true);
 
-    // ── แทรกการพิมพ์แบบฟอร์มขอคืนเงินก่อน แล้วค่อย run ต่อ ──
-    await printRefundForm(item);
+    // ── พิมพ์ใบขอคืนเงินก่อน เฉพาะเมื่อผู้ใช้เลือก "ใช่" ──
+    if (withRefundPrint) {
+      await printRefundForm(item);
+    }
 
     try {
       const res = await appScriptRequest<{ ok: boolean; message?: string }>({
@@ -831,27 +833,37 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
                 <AlertTriangle size={20} color="#c63742" />
               </div>
               <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1a2d3e" }}>
-                ต้องการยกเลิกรายการนี้หรือไม่?
+                ต้องการคืนเงินสำหรับรายการนี้หรือไม่?
               </div>
               <div style={{ fontSize: "0.68rem", color: "#8a9baa", marginTop: 5, lineHeight: 1.5 }}>
                 ใบเสร็จ <b style={{ color: "#c63742" }}>{cancelItem.receiptNo}</b> · {cancelItem.name}
                 <br />ยอด {fmt(cancelItem.amount)} บาท จะถูกบันทึกเป็นยอดติดลบ
+                <br /><span style={{ fontSize: "0.63rem", color: "#a0b0be" }}>
+                  เลือก &ldquo;ใช่&rdquo; เพื่อพิมพ์ใบขอคืนเงินก่อนยกเลิก · &ldquo;ไม่ใช่&rdquo; เพื่อยกเลิกทันที
+                </span>
               </div>
             </div>
             <div style={{ display: "flex", borderTop: "1px solid #eef2f5" }}>
               <button
                 onClick={() => setCancelItem(null)}
                 disabled={cancelling}
-                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#667789", cursor: "pointer", fontSize: "0.74rem", fontWeight: 600, borderRight: "1px solid #eef2f5" }}
+                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#8a9baa", cursor: cancelling ? "not-allowed" : "pointer", fontSize: "0.72rem", fontWeight: 600, borderRight: "1px solid #eef2f5" }}
               >
-                No
+                ปิด
               </button>
               <button
-                onClick={confirmCancel}
+                onClick={() => confirmCancel(false)}
                 disabled={cancelling}
-                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#c63742", cursor: cancelling ? "wait" : "pointer", fontSize: "0.74rem", fontWeight: 700 }}
+                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#667789", cursor: cancelling ? "wait" : "pointer", fontSize: "0.72rem", fontWeight: 600, borderRight: "1px solid #eef2f5" }}
               >
-                {cancelling ? "กำลังยกเลิก..." : "Yes"}
+                {cancelling ? "..." : "ไม่ใช่"}
+              </button>
+              <button
+                onClick={() => confirmCancel(true)}
+                disabled={cancelling}
+                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#c63742", cursor: cancelling ? "wait" : "pointer", fontSize: "0.72rem", fontWeight: 700 }}
+              >
+                {cancelling ? "กำลังดำเนินการ..." : "ใช่"}
               </button>
             </div>
           </div>
