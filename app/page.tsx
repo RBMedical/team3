@@ -180,7 +180,8 @@ export default function Home() {
         ws["!cols"] = colWidths;
         exportRes.followData.forEach((row: string[], ri: number) => {
           row.forEach((_cell: string, ci: number) => {
-            if (ci < 2) return;
+            // จัด center ทุกคอลัมน์ ยกเว้นคอลัมน์ B (index 1)
+            if (ci === 1) return;
             const addr = XLSX.utils.encode_cell({ r: ri, c: ci });
             if (ws[addr]) ws[addr].s = { alignment: { horizontal: "center", vertical: "center" } };
           });
@@ -198,7 +199,12 @@ export default function Home() {
             row.forEach((_c, ci) => {
               const addr = XLSX.utils.encode_cell({ r: ri, c: ci });
               if (!ws[addr]) return;
-              ws[addr].s = ri === 0 ? headerS : ci === 0 ? { alignment: { horizontal: "center", vertical: "center" } } : { alignment: { horizontal: "left", vertical: "center" } };
+              // header คงเดิม / body: center ทุกคอลัมน์ ยกเว้นคอลัมน์ B (index 1)
+              ws[addr].s = ri === 0
+                ? headerS
+                : ci === 1
+                  ? { alignment: { horizontal: "left", vertical: "center" } }
+                  : { alignment: { horizontal: "center", vertical: "center" } };
             });
           });
           XLSX.utils.book_append_sheet(wb1, ws, specName.replace(/[/\?*[\]:]/g, "").slice(0, 31));
@@ -211,27 +217,27 @@ export default function Home() {
       // ═══════════════════════════════════════════════════════
       //  FILE 2 — Result.xlsx (sheets ตาม spec + ดึงข้อมูลจาก Data)
       // ═══════════════════════════════════════════════════════
-     const RESULT_SHEETS: Record<string, string[]> = {
-        "BMI": ["HN", "ชื่อ-นามสกุล", "รหัสพนักงาน", "Department",  "อายุ","น้ำหนัก", "ส่วนสูง", "ดัชนีมวลกาย", "ความดันโลหิตบน", "ความดันโลหิตตัวล่าง", "ชีพจร", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "XRay": ["HN", "ชื่อ-นามสกุล","รหัสพนักงาน", "Department",  "อายุ", "เอกซเรย์ดิจิตอล", "สรุปผลการตรวจ เอกซเรย์", "แพทย์ผู้อ่านผลเอกซ์เรย์ปอด", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Urine": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "อายุ","Bilirubin", "SP.GR.", "Leukocyte", "Urobilinogen", "Nitrite", "COLOR", "APPEAR", "BLOOD(URINE)", "KETONE(URINE)", "GLUCOSE(URINE)", "PROTEIN(URINE)", "pH(URINE)", "RBC(URINE)", "WBC(URINE)", "EPITHELIUM CELL (URINE)", "BACTERIA(URINE)", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "CBC": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "อายุ","WBC count", "RBC count", "Hb", "Hct", "Plt count", "PLT smear", "Neutrophil", "Lymphocyte", "Monocyte", "Eosinophil", "Basophil", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "FBS": ["HN", "ชื่อ-นามสกุล", "Department", "รหัสพนักงาน",  "อายุ","results", "summary", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Chol": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "อายุ","Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "HDL": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "LDL": ["HN", "ชื่อ-นามสกุล","Department", "รหัสพนักงาน",  "อายุ", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Trigy": ["HN", "ชื่อ-นามสกุล", "Department", "รหัสพนักงาน",  "อายุ","Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "BUN": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน","อายุ", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Creatinin": ["HN", "ชื่อ-นามสกุล", "Department", "รหัสพนักงาน",  "อายุ","Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "eGFR": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "อายุ","Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "SGPT": ["HN", "ชื่อ-นามสกุล", "Department", "รหัสพนักงาน","อายุ",  "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "SGOT": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน","อายุ", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Alk": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "อายุ","Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Uric": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน","อายุ", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "EKG": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน","อายุ", "ผลตรวจ", "สรุปผลการตรวจ", "แพทย์ผู้อ่านผล", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Audiogram": ["HN", "ชื่อ-นามสกุล","Department", "รหัสพนักงาน", "อายุ",  "หูซ้าย 500 Hz.", "หูซ้าย 1000 Hz.", "หูซ้าย 2000 Hz.", "หูซ้าย 3000 Hz.", "หูซ้าย 4000 Hz.", "หูซ้าย 6000 Hz.", "หูซ้าย 8000 Hz.", "หูขวา 500 Hz.", "หูขวา 1000 Hz.", "หูขวา 2000 Hz.", "หูขวา 3000 Hz.", "หูขวา 4000 Hz.", "หูขวา 6000 Hz.", "หูขวา 8000 Hz.", "สรุปการตรวจหู", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+      const RESULT_SHEETS: Record<string, string[]> = {
+        "BMI": ["HN", "ชื่อ-นามสกุล", "อายุ", "รหัสพนักงาน", "Department", "น้ำหนัก", "ส่วนสูง", "ดัชนีมวลกาย", "ความดันโลหิตบน", "ความดันโลหิตตัวล่าง", "ชีพจร", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "XRay": ["HN", "ชื่อ-นามสกุล", "อายุ", "รหัสพนักงาน", "Department", "เอกซเรย์ดิจิตอล", "สรุปผลการตรวจ เอกซเรย์", "แพทย์ผู้อ่านผลเอกซ์เรย์ปอด", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Urine": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Bilirubin", "SP.GR.", "Leukocyte", "Urobilinogen", "Nitrite", "COLOR", "APPEAR", "BLOOD(URINE)", "KETONE(URINE)", "GLUCOSE(URINE)", "PROTEIN(URINE)", "pH(URINE)", "RBC(URINE)", "WBC(URINE)", "EPITHELIUM CELL (URINE)", "BACTERIA(URINE)", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "CBC": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "WBC count", "RBC count", "Hb", "Hct", "Plt count", "PLT smear", "Neutrophil", "Lymphocyte", "Monocyte", "Eosinophil", "Basophil", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "FBS": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "results", "summary", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Chol": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "HDL": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "LDL": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Trigy": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "BUN": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Creatinin": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "eGFR": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "SGPT": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "SGOT": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Alk": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Uric": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "EKG": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "ผลตรวจ", "สรุปผลการตรวจ", "แพทย์ผู้อ่านผล", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Audiogram": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "หูซ้าย 500 Hz.", "หูซ้าย 1000 Hz.", "หูซ้าย 2000 Hz.", "หูซ้าย 3000 Hz.", "หูซ้าย 4000 Hz.", "หูซ้าย 6000 Hz.", "หูซ้าย 8000 Hz.", "หูขวา 500 Hz.", "หูขวา 1000 Hz.", "หูขวา 2000 Hz.", "หูขวา 3000 Hz.", "หูขวา 4000 Hz.", "หูขวา 6000 Hz.", "หูขวา 8000 Hz.", "สรุปการตรวจหู", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
         "Eyes": ["HN", "ชื่อ-นามสกุล", "รหัสพนักงาน", "Department", "อายุ", "มองระยะใกล้", "มองระยะไกล", "มองภาพ3มิติ", "การแยกสี", "สมดุลกล้ามเนื้อตาแนวตั้ง", "สมดุลกล้ามเนื้อตาแนวนอน", "ลานสายตา", "สรุป", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Spirometry": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน","อายุ", "FVC", "FEV1", "FEV1/FVC", "result", "summary", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Spirometry": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "FVC", "FEV1", "FEV1/FVC", "result", "summary", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
         "Muscle(L/B)": ["HN", "ชื่อ-นามสกุล", "รหัสพนักงาน", "Department", "อายุ", "เพศ", "น้ำหนัก", "หลัง/ค่าทดสอบ", "หลัง/ค่าแปรผล", "หลัง/ผลตรวจ", "หลัง/ระดับ", "ขา/ค่าทดสอบ", "ขา/ค่าแปรผล", "ขา/ผลตรวจ", "ขา/ระดับ", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
         "Muscle(H)": ["HN", "ชื่อ-นามสกุล", "รหัสพนักงาน", "Department", "อายุ", "เพศ", "น้ำหนัก", "ขวา/ค่าทดสอบ", "ขวา/ค่าแปรผล", "ขวา/ผลตรวจ", "ขวา/ระดับ", "ซ้าย/ค่าทดสอบ", "ซ้าย/ค่าแปรผล", "ซ้าย/ผลตรวจ", "ซ้าย/ระดับ", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
       };
@@ -271,6 +277,18 @@ export default function Home() {
         headers.forEach((_h, ci) => {
           const addr = XLSX.utils.encode_cell({ r: 0, c: ci });
           if (ws[addr]) ws[addr].s = headerStyle2;
+        });
+
+        // body: center ทุกคอลัมน์ ยกเว้นคอลัมน์ B (index 1)
+        data.forEach((row, ri) => {
+          if (ri === 0) return; // ข้าม header
+          row.forEach((_c, ci) => {
+            const addr = XLSX.utils.encode_cell({ r: ri, c: ci });
+            if (!ws[addr]) return;
+            ws[addr].s = ci === 1
+              ? { alignment: { horizontal: "left", vertical: "center" } }
+              : { alignment: { horizontal: "center", vertical: "center" } };
+          });
         });
 
         const safeName = sheetName.replace(/[/\?*[\]:]/g, "").slice(0, 31);
