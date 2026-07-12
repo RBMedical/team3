@@ -72,7 +72,8 @@ export default function Home() {
   async function handleExportExcel() {
     setExporting(true);
     try {
-      const XLSX = await import("xlsx");
+      // ใช้ xlsx-js-style เพราะ xlsx ธรรมดาไม่รองรับ cell style (ws[addr].s ถูกละเลย)
+      const XLSX = await import("xlsx-js-style");
 
       // ── ดึงข้อมูลทั้งหมดพร้อมกัน ────────────────────────────
       const [exportRes, resultRes] = await Promise.all([
