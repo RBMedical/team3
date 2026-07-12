@@ -48,6 +48,7 @@ export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = 
   const [queueRows, setQueueRows] = useState<QueueRow[]>([]);
   const [status, setStatus] = useState<{ msg: string; ok: boolean }>({ msg: "พร้อมใช้งาน", ok: true });
   const [registerCount, setRegisterCount] = useState(0);
+  const [todayCount, setTodayCount] = useState(0);
   const [addNewCount, setAddNewCount] = useState(0);
   const [counts, setCounts] = useState<Record<string, number>>({});
 
@@ -79,6 +80,7 @@ export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = 
       if (!result.ok) return;
       setQueueRows(result.rows || []);
       setRegisterCount(result.count || 0);
+      setTodayCount(result.todayCount || 0);
       setAddNewCount(result.addNewCount || 0);
     } catch {}
   }, []);
@@ -549,7 +551,13 @@ ${stickerHTML}
           <div className="follow-summary-grid">
             <div className="follow-summary-card">
               <span className="fsc-label">ลงทะเบียน</span>
-              <input readOnly value={registerCount} />
+              <input readOnly value={registerCount} title="ลงทะเบียนทั้งหมด" />
+              <input
+                readOnly
+                value={todayCount}
+                title="ลงทะเบียนวันนี้"
+                style={{ borderLeft: "1px solid #c8d8e4" }}
+              />
             </div>
             <div className="follow-summary-card">
               <span className="fsc-label">เพิ่มชื่อ</span>
