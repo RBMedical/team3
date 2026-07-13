@@ -214,6 +214,7 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
 
   // Report print
   const [reportPrinting, setReportPrinting] = useState(false);
+  const [reportConfirmOpen, setReportConfirmOpen] = useState(false);
 
   /* ── Load list ── */
   const load = useCallback(async () => {
@@ -377,44 +378,37 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
       const doc = iframe.contentWindow!.document;
       doc.open(); doc.write(html); doc.close();
 
-      let done = false;
-      const firePrintAndResolve = () => {
-        if (done) return;
-        done = true;
+      let fired = false;
+      const firePrint = () => {
         try { iframe.contentWindow!.focus(); iframe.contentWindow!.print(); } catch {}
-        // resolve ทันทีหลังสั่งพิมพ์ เพื่อ run ขั้นตอนต่อไปได้ ไม่รอ dialog
-        resolve();
-        // cleanup iframe แยกภายหลัง (ไม่ block flow)
-        setTimeout(() => {
-          try { document.body.removeChild(iframe); } catch {}
-        }, 60000);
       };
-      iframe.onload = () => firePrintAndResolve();
-      // fallback เผื่อ onload ไม่ยิง
-      setTimeout(firePrintAndResolve, 800);
+      iframe.onload = () => { if (!fired) { fired = true; firePrint(); } };
+      setTimeout(() => { if (!fired) { fired = true; firePrint(); } }, 500);
+      // เก็บ iframe แล้ว resolve เพื่อ run ขั้นตอนต่อไป
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        resolve();
+      }, 800);
     });
   }
 
-  async function confirmCancel(withRefundPrint: boolean) {
+  async function confirmCancel() {
     if (!cancelItem) return;
-    const item = cancelItem;  // เก็บค่าไว้ กัน null ระหว่าง async
     setCancelling(true);
 
-    // ── พิมพ์ใบขอคืนเงินก่อน เฉพาะเมื่อผู้ใช้เลือก "ใช่" ──
-    if (withRefundPrint) {
-      await printRefundForm(item);
-    }
+    // ── แทรกการพิมพ์แบบฟอร์มขอคืนเงินก่อน แล้วค่อย run ต่อ ──
+    await printRefundForm(cancelItem);
 
     try {
       const res = await appScriptRequest<{ ok: boolean; message?: string }>({
         action: "cancelReceipt",
-        receiptNo: item.receiptNo,
-        hn: item.hn,
-        name: item.name,
-        amount: item.amount,
+        receiptNo: cancelItem.receiptNo,
+        hn: cancelItem.hn,
+        name: cancelItem.name,
+        amount: cancelItem.amount,
       });
       if (res.ok) {
-        toast({ title: `ยกเลิกใบเสร็จ ${item.receiptNo} แล้ว`, variant: "success" });
+        toast({ title: `ยกเลิกใบเสร็จ ${cancelItem.receiptNo} แล้ว`, variant: "success" });
         load();
       } else {
         toast({ title: res.message || "ยกเลิกไม่สำเร็จ", variant: "destructive" });
@@ -430,6 +424,7 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
   /* ── Print report (A4 portrait) from Recieve sheet ── */
   async function printReport() {
     if (reportPrinting) return;
+    setReportConfirmOpen(false);
     setReportPrinting(true);
     try {
       const res = await appScriptRequest<{
@@ -514,6 +509,10 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
       iframe.onload = () => { if (!fired) { fired = true; firePrint(); } };
       setTimeout(() => { if (!fired) { fired = true; firePrint(); } }, 500);
       setTimeout(() => { document.body.removeChild(iframe); }, 1200);
+
+      // ── เคลียร์ตารางบนหน้าจอเท่านั้น (state) — ไม่แตะ sheet Extra / Recieve ──
+      setItems([]);
+      toast({ title: "พิมพ์รายงานแล้ว · เคลียร์ตารางเรียบร้อย", variant: "success" });
     } catch {
       toast({ title: "เชื่อมต่อไม่สำเร็จ", variant: "destructive" });
     } finally {
@@ -565,7 +564,7 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
             {items.length} รายการ
           </span>
           <button
-            onClick={printReport}
+            onClick={() => setReportConfirmOpen(true)}
             disabled={reportPrinting}
             title="พิมพ์รายงานยอดขาย"
             style={{
@@ -811,6 +810,59 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
         </div>
       )}
 
+      {/* ══ Report Print Confirm Dialog ══════════════════════ */}
+      {reportConfirmOpen && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 210, background: "rgba(10,35,50,0.5)",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          }}
+          onClick={(e) => e.target === e.currentTarget && !reportPrinting && setReportConfirmOpen(false)}
+        >
+          <div style={{
+            background: "#fff", borderRadius: 13, width: "min(400px, 94vw)",
+            overflow: "hidden", boxShadow: "0 18px 50px rgba(5,30,45,0.35)",
+          }}>
+            <div style={{ padding: "18px 20px 14px", textAlign: "center" }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: "50%", background: "#fffbeb",
+                border: "1.5px solid #f0d060", display: "flex", alignItems: "center",
+                justifyContent: "center", margin: "0 auto 10px",
+              }}>
+                <AlertTriangle size={20} color="#92680a" />
+              </div>
+              <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1a2d3e", lineHeight: 1.5 }}>
+                หลังจากพิมพ์รายงานแล้วข้อมูลทั้งหมดจะถูกลบ
+                <br />คุณยืนยันที่จะพิมพ์รายงานหรือไม่?
+              </div>
+              <div style={{ fontSize: "0.66rem", color: "#8a9baa", marginTop: 6, lineHeight: 1.5 }}>
+                ตารางรายการชำระเงินบนหน้าจอจะถูกเคลียร์
+                <br />
+                <span style={{ fontSize: "0.62rem", color: "#a0b0be" }}>
+                  (ข้อมูลที่บันทึกใน Sheet จะไม่ถูกลบ)
+                </span>
+              </div>
+            </div>
+            <div style={{ display: "flex", borderTop: "1px solid #eef2f5" }}>
+              <button
+                onClick={() => setReportConfirmOpen(false)}
+                disabled={reportPrinting}
+                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#667789", cursor: reportPrinting ? "not-allowed" : "pointer", fontSize: "0.74rem", fontWeight: 600, borderRight: "1px solid #eef2f5" }}
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={printReport}
+                disabled={reportPrinting}
+                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#0c6075", cursor: reportPrinting ? "wait" : "pointer", fontSize: "0.74rem", fontWeight: 700 }}
+              >
+                {reportPrinting ? "กำลังพิมพ์..." : "ยืนยัน"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ══ Cancel Confirm Dialog ════════════════════════════ */}
       {cancelItem && (
         <div
@@ -833,37 +885,27 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
                 <AlertTriangle size={20} color="#c63742" />
               </div>
               <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1a2d3e" }}>
-                ต้องการคืนเงินสำหรับรายการนี้หรือไม่?
+                ต้องการยกเลิกรายการนี้หรือไม่?
               </div>
               <div style={{ fontSize: "0.68rem", color: "#8a9baa", marginTop: 5, lineHeight: 1.5 }}>
                 ใบเสร็จ <b style={{ color: "#c63742" }}>{cancelItem.receiptNo}</b> · {cancelItem.name}
                 <br />ยอด {fmt(cancelItem.amount)} บาท จะถูกบันทึกเป็นยอดติดลบ
-                <br /><span style={{ fontSize: "0.63rem", color: "#a0b0be" }}>
-                  เลือก &ldquo;ใช่&rdquo; เพื่อพิมพ์ใบขอคืนเงินก่อนยกเลิก · &ldquo;ไม่ใช่&rdquo; เพื่อยกเลิกทันที
-                </span>
               </div>
             </div>
             <div style={{ display: "flex", borderTop: "1px solid #eef2f5" }}>
               <button
                 onClick={() => setCancelItem(null)}
                 disabled={cancelling}
-                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#8a9baa", cursor: cancelling ? "not-allowed" : "pointer", fontSize: "0.72rem", fontWeight: 600, borderRight: "1px solid #eef2f5" }}
+                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#667789", cursor: "pointer", fontSize: "0.74rem", fontWeight: 600, borderRight: "1px solid #eef2f5" }}
               >
-                ปิด
+                No
               </button>
               <button
-                onClick={() => confirmCancel(false)}
+                onClick={confirmCancel}
                 disabled={cancelling}
-                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#667789", cursor: cancelling ? "wait" : "pointer", fontSize: "0.72rem", fontWeight: 600, borderRight: "1px solid #eef2f5" }}
+                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#c63742", cursor: cancelling ? "wait" : "pointer", fontSize: "0.74rem", fontWeight: 700 }}
               >
-                {cancelling ? "..." : "ไม่ใช่"}
-              </button>
-              <button
-                onClick={() => confirmCancel(true)}
-                disabled={cancelling}
-                style={{ flex: 1, height: 40, border: "none", background: "#fff", color: "#c63742", cursor: cancelling ? "wait" : "pointer", fontSize: "0.72rem", fontWeight: 700 }}
-              >
-                {cancelling ? "กำลังดำเนินการ..." : "ใช่"}
+                {cancelling ? "กำลังยกเลิก..." : "Yes"}
               </button>
             </div>
           </div>
