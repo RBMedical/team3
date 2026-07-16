@@ -1161,8 +1161,20 @@ button.add-new:hover {
   color: var(--ink);
 }
 
+.queue-table tbody tr {
+  cursor: pointer;
+}
+
 .queue-table tbody tr:hover {
   background: #f0faf5;
+}
+
+.queue-table tbody tr.queue-row-selected {
+  background: #dcf3ea;
+}
+
+.queue-table tbody tr.queue-row-selected:hover {
+  background: #cdedde;
 }
 
 /* ── Modal ── */
