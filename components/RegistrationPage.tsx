@@ -48,7 +48,6 @@ export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = 
   const [queueRows, setQueueRows] = useState<QueueRow[]>([]);
   const [status, setStatus] = useState<{ msg: string; ok: boolean }>({ msg: "พร้อมใช้งาน", ok: true });
   const [registerCount, setRegisterCount] = useState(0);
-  const [todayCount, setTodayCount] = useState(0);
   const [addNewCount, setAddNewCount] = useState(0);
   const [counts, setCounts] = useState<Record<string, number>>({});
 
@@ -61,8 +60,6 @@ export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = 
   const [printDialog, setPrintDialog] = useState(false);
   const [specimenFilterOpen, setSpecimenFilterOpen] = useState(false);
   const [selectedSpecimens, setSelectedSpecimens] = useState<Set<string>>(new Set());
-  const [testStickers, setTestStickers] = useState<StickerItem[]>([]);
-  const [testStickersLoading, setTestStickersLoading] = useState(false);
 
   const statusEl = useRef<HTMLDivElement>(null);
 
@@ -80,7 +77,6 @@ export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = 
       if (!result.ok) return;
       setQueueRows(result.rows || []);
       setRegisterCount(result.count || 0);
-      setTodayCount(result.todayCount || 0);
       setAddNewCount(result.addNewCount || 0);
     } catch {}
   }, []);
@@ -551,13 +547,7 @@ ${stickerHTML}
           <div className="follow-summary-grid">
             <div className="follow-summary-card">
               <span className="fsc-label">ลงทะเบียน</span>
-              <input readOnly value={registerCount} title="ลงทะเบียนทั้งหมด" />
-              <input
-                readOnly
-                value={todayCount}
-                title="ลงทะเบียนวันนี้"
-                style={{ borderLeft: "1px solid #c8d8e4" }}
-              />
+              <input readOnly value={registerCount} />
             </div>
             <div className="follow-summary-card">
               <span className="fsc-label">เพิ่มชื่อ</span>
@@ -626,26 +616,13 @@ ${stickerHTML}
           })}
         </div>
         <div className="printer-box">
-          <button className="success full" onClick={async () => {
-            if (!currentRow?.HN) { setStatusMsg("กรุณาเลือกข้อมูลก่อนพิมพ์", false); return; }
-            setTestStickersLoading(true);
-            try {
-              const result = await appScriptRequest<{ ok: boolean; stickers?: StickerItem[] }>({
-                action: "getTestStickers",
-                hn: String(currentRow.HN).trim(),
-              });
-              const items = (result.ok && result.stickers?.length) ? result.stickers : [];
-              setTestStickers(items);
-              setSelectedSpecimens(new Set(items.map(s => s.specimenCode)));
-            } catch {
-              setTestStickers([]);
-              setSelectedSpecimens(new Set());
-            } finally {
-              setTestStickersLoading(false);
-            }
+          <button className="success full" onClick={() => {
+            if (!stickers.length) { setStatusMsg("ไม่มีสติกเกอร์ที่จะพิมพ์", false); return; }
+            // เปิด filter modal พร้อม pre-select ทุก specimen
+            setSelectedSpecimens(new Set(stickers.map(s => s.specimen)));
             setSpecimenFilterOpen(true);
           }}>
-            <Printer size={14} />{testStickersLoading ? "กำลังโหลด..." : "พิมพ์"}
+            <Printer size={14} />พิมพ์
           </button>
           <small>กรุณาตรวจสอบข้อมูลก่อนพิมพ์</small>
         </div>
@@ -671,7 +648,11 @@ ${stickerHTML}
             </thead>
             <tbody>
               {queueRows.map((row, i) => (
-                <tr key={i}>
+                <tr
+                  key={i}
+                  className={currentRow && String(currentRow.HN).trim() === String(row.hn).trim() ? "queue-row-selected" : ""}
+                  onClick={() => handleSearch(row.hn, { suppressNotFound: true })}
+                >
                   <td className="text-center">{row.sequence}</td>
                   <td className="text-center">{row.hn}</td>
                   <td>{row.name}</td>
@@ -747,23 +728,23 @@ ${stickerHTML}
 
       {/* ── Specimen Filter Modal ───────────────────────────── */}
       {specimenFilterOpen && (() => {
-        // unique specimen list จาก testStickers (key = specimenCode)
+        // unique specimen list จาก stickers ปัจจุบัน
         const uniqueSpecimens = Array.from(
-          new Map(testStickers.map(s => [s.specimenCode, s])).values()
+          new Map(stickers.map(s => [s.specimen, s])).values()
         );
-        const allSelected = uniqueSpecimens.length > 0 && uniqueSpecimens.every(s => selectedSpecimens.has(s.specimenCode));
+        const allSelected = uniqueSpecimens.every(s => selectedSpecimens.has(s.specimen));
 
-        function toggleSpecimen(code: string) {
+        function toggleSpecimen(name: string) {
           setSelectedSpecimens(prev => {
             const next = new Set(prev);
-            next.has(code) ? next.delete(code) : next.add(code);
+            next.has(name) ? next.delete(name) : next.add(name);
             return next;
           });
         }
 
         function confirmPrint() {
           setSpecimenFilterOpen(false);
-          const filtered = testStickers.filter(s => selectedSpecimens.has(s.specimenCode));
+          const filtered = stickers.filter(s => selectedSpecimens.has(s.specimen));
           if (!filtered.length) { setStatusMsg("ไม่มี specimen ที่เลือก", false); return; }
           printStickers(filtered);
         }
@@ -823,7 +804,7 @@ ${stickerHTML}
               }}>
                 <button
                   onClick={() => setSelectedSpecimens(
-                    allSelected ? new Set() : new Set(uniqueSpecimens.map(s => s.specimenCode))
+                    allSelected ? new Set() : new Set(uniqueSpecimens.map(s => s.specimen))
                   )}
                   style={{
                     display: "flex", alignItems: "center", gap: 6,
@@ -858,14 +839,13 @@ ${stickerHTML}
 
               {/* Specimen list */}
               <div style={{ padding: "8px 12px 4px", maxHeight: 280, overflowY: "auto" }}>
-                {uniqueSpecimens.length === 0
-                  ? <p style={{ textAlign: "center", color: "#8a9baa", fontSize: "0.75rem", padding: "20px 0" }}>ไม่พบข้อมูล specimen</p>
-                  : uniqueSpecimens.map((s, i) => {
-                  const checked = selectedSpecimens.has(s.specimenCode);
+                {uniqueSpecimens.map((s, i) => {
+                  const checked = selectedSpecimens.has(s.specimen);
+                  const count   = stickers.filter(x => x.specimen === s.specimen).length;
                   return (
                     <button
                       key={i}
-                      onClick={() => toggleSpecimen(s.specimenCode)}
+                      onClick={() => toggleSpecimen(s.specimen)}
                       style={{
                         width: "100%", display: "flex", alignItems: "center", gap: 12,
                         padding: "10px 12px", borderRadius: 9, marginBottom: 5,
@@ -887,24 +867,21 @@ ${stickerHTML}
                           </svg>
                         )}
                       </div>
-                      {/* Label — แสดงทั้ง specimen name และ code */}
+                      {/* Label */}
                       <span style={{
                         flex: 1, fontSize: "0.78rem", fontWeight: checked ? 700 : 500,
                         color: checked ? "#0b4f61" : "#3a4d5e",
                       }}>
                         {s.specimen}
-                        <span style={{ fontSize: "0.65rem", color: "#8a9baa", marginLeft: 6 }}>
-                          [{s.specimenCode}]
-                        </span>
                       </span>
-                      {/* Barcode preview */}
+                      {/* Count badge */}
                       <span style={{
                         fontSize: "0.6rem", fontWeight: 700,
                         background: checked ? "#109cbe" : "#e8eef3",
                         color: checked ? "#fff" : "#667789",
                         padding: "2px 8px", borderRadius: 999,
                       }}>
-                        {s.barcode}
+                        {count} ใบ
                       </span>
                     </button>
                   );
