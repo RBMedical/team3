@@ -43,8 +43,8 @@
     --shell-py: 14px;
     --header-h: 52px;
     --workspace-gap: 10px;
-    --col-register: minmax(0, 2.55fr);
-    --col-sticker: minmax(0, 1.1fr);
+    --col-register: minmax(0, 2.05fr);
+    --col-sticker: 220px;
     --col-queue: minmax(0, 1.55fr);
 
     /* Typography */
@@ -83,8 +83,8 @@
       --shell-py: 10px;
       --header-h: 46px;
       --workspace-gap: 8px;
-      --col-register: minmax(0, 2.6fr);
-      --col-sticker: minmax(0, 1.05fr);
+      --col-register: minmax(0, 2.1fr);
+      --col-sticker: 216px;
       --col-queue: minmax(0, 1.5fr);
       --fs-base: 12px;
       --fs-small: 10px;
@@ -118,8 +118,8 @@
       --shell-py: 20px;
       --header-h: 62px;
       --workspace-gap: 14px;
-      --col-register: minmax(0, 2.5fr);
-      --col-sticker: minmax(0, 1.1fr);
+      --col-register: minmax(0, 2.0fr);
+      --col-sticker: 224px;
       --col-queue: minmax(0, 1.6fr);
       --fs-base: 15px;
       --fs-small: 13px;
