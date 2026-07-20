@@ -1,19 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
-  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Banknote, LogOut,
+  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Settings,
 } from "lucide-react";
 import { RegistrationPage } from "@/components/RegistrationPage";
 import { appScriptRequest } from "@/lib/api";
 import { ReportPage } from "@/components/ReportPage";
 import { SpecimenModal } from "@/components/SpecimenModal";
 import { PersonalDetailModal } from "@/components/PersonalDetailModal";
-import { FinancePage } from "@/components/FinancePage";
-import { LoginModal, type LoggedInUser } from "@/components/LoginModal";
 import { useToast } from "@/hooks/use-toast";
 
-type Page = "registration" | "report" | "finance";
+type Page = "registration" | "report";
 
 export default function Home() {
   const { toast } = useToast();
@@ -25,55 +23,34 @@ export default function Home() {
   const [statusOk, setStatusOk] = useState(true);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [detailName, setDetailName] = useState("");
-  const [loggedInUser, setLoggedInUser] = useState<LoggedInUser | null>(() => {
-    // กู้คืน session ที่ login ไว้ (กัน modal login เด้งซ้ำหลัง print/re-render)
-    if (typeof window !== "undefined") {
-      try {
-        const saved = sessionStorage.getItem("loggedInUser");
-        if (saved) return JSON.parse(saved) as LoggedInUser;
-      } catch {}
-    }
-    return null;
-  });
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+  const settingsMenuRef = useRef<HTMLDivElement>(null);
 
   const [exporting, setExporting] = useState(false);
 
-  // ── sync loggedInUser → sessionStorage ──────────────────────
-  React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      if (loggedInUser) sessionStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
-      else sessionStorage.removeItem("loggedInUser");
-    } catch {}
-  }, [loggedInUser]);
-
-  // ── ดึง Detail A1 ตอน mount (retry กัน network สะดุด) ────────
-  React.useEffect(() => {
-    let cancelled = false;
-    async function fetchDetailName(attempt = 0) {
-      try {
-        const res = await appScriptRequest<{ ok: boolean; name?: string }>({ action: "getDetailName" });
-        if (!cancelled && res.ok && res.name) {
-          setDetailName(res.name);
-          return;
-        }
-        throw new Error("empty");
-      } catch {
-        // retry สูงสุด 3 ครั้ง เว้นระยะ 1.5 วินาที
-        if (!cancelled && attempt < 3) {
-          setTimeout(() => fetchDetailName(attempt + 1), 1500);
-        }
+  // ── ปิด settings menu เมื่อคลิกนอกกรอบ ──────────────────────
+  useEffect(() => {
+    if (!settingsMenuOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (settingsMenuRef.current && !settingsMenuRef.current.contains(e.target as Node)) {
+        setSettingsMenuOpen(false);
       }
     }
-    fetchDetailName();
-    return () => { cancelled = true; };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [settingsMenuOpen]);
+
+  // ── ดึง Detail A1 ตอน mount ──────────────────────────────────
+  React.useEffect(() => {
+    appScriptRequest<{ ok: boolean; name?: string }>({ action: "getDetailName" })
+      .then(res => { if (res.ok && res.name) setDetailName(res.name); })
+      .catch(() => { });
   }, []);
 
   async function handleExportExcel() {
     setExporting(true);
     try {
-      // ใช้ xlsx-js-style เพราะ xlsx ธรรมดาไม่รองรับ cell style (ws[addr].s ถูกละเลย)
-      const XLSX = await import("xlsx-js-style");
+      const XLSX = await import("xlsx");
 
       // ── ดึงข้อมูลทั้งหมดพร้อมกัน ────────────────────────────
       const [exportRes, resultRes] = await Promise.all([
@@ -181,8 +158,7 @@ export default function Home() {
         ws["!cols"] = colWidths;
         exportRes.followData.forEach((row: string[], ri: number) => {
           row.forEach((_cell: string, ci: number) => {
-            // จัด center ทุกคอลัมน์ ยกเว้นคอลัมน์ B (index 1)
-            if (ci === 1) return;
+            if (ci < 2) return;
             const addr = XLSX.utils.encode_cell({ r: ri, c: ci });
             if (ws[addr]) ws[addr].s = { alignment: { horizontal: "center", vertical: "center" } };
           });
@@ -200,12 +176,7 @@ export default function Home() {
             row.forEach((_c, ci) => {
               const addr = XLSX.utils.encode_cell({ r: ri, c: ci });
               if (!ws[addr]) return;
-              // header คงเดิม / body: center ทุกคอลัมน์ ยกเว้นคอลัมน์ B (index 1)
-              ws[addr].s = ri === 0
-                ? headerS
-                : ci === 1
-                  ? { alignment: { horizontal: "left", vertical: "center" } }
-                  : { alignment: { horizontal: "center", vertical: "center" } };
+              ws[addr].s = ri === 0 ? headerS : ci === 0 ? { alignment: { horizontal: "center", vertical: "center" } } : { alignment: { horizontal: "left", vertical: "center" } };
             });
           });
           XLSX.utils.book_append_sheet(wb1, ws, specName.replace(/[/\?*[\]:]/g, "").slice(0, 31));
@@ -219,26 +190,26 @@ export default function Home() {
       //  FILE 2 — Result.xlsx (sheets ตาม spec + ดึงข้อมูลจาก Data)
       // ═══════════════════════════════════════════════════════
       const RESULT_SHEETS: Record<string, string[]> = {
-        "BMI": ["HN", "ชื่อ-นามสกุล", "อายุ", "รหัสพนักงาน", "Department", "น้ำหนัก", "ส่วนสูง", "ดัชนีมวลกาย", "ความดันโลหิตบน", "ความดันโลหิตตัวล่าง", "ชีพจร", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "XRay": ["HN", "ชื่อ-นามสกุล", "อายุ", "รหัสพนักงาน", "Department", "เอกซเรย์ดิจิตอล", "สรุปผลการตรวจ เอกซเรย์", "แพทย์ผู้อ่านผลเอกซ์เรย์ปอด", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Urine": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Bilirubin", "SP.GR.", "Leukocyte", "Urobilinogen", "Nitrite", "COLOR", "APPEAR", "BLOOD(URINE)", "KETONE(URINE)", "GLUCOSE(URINE)", "PROTEIN(URINE)", "pH(URINE)", "RBC(URINE)", "WBC(URINE)", "EPITHELIUM CELL (URINE)", "BACTERIA(URINE)", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "CBC": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "WBC count", "RBC count", "Hb", "Hct", "Plt count", "PLT smear", "Neutrophil", "Lymphocyte", "Monocyte", "Eosinophil", "Basophil", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "FBS": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "results", "summary", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Chol": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "HDL": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "LDL": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Trigy": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "BUN": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Creatinin": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "eGFR": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "SGPT": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "SGOT": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Alk": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Uric": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "EKG": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "ผลตรวจ", "สรุปผลการตรวจ", "แพทย์ผู้อ่านผล", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Audiogram": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "หูซ้าย 500 Hz.", "หูซ้าย 1000 Hz.", "หูซ้าย 2000 Hz.", "หูซ้าย 3000 Hz.", "หูซ้าย 4000 Hz.", "หูซ้าย 6000 Hz.", "หูซ้าย 8000 Hz.", "หูขวา 500 Hz.", "หูขวา 1000 Hz.", "หูขวา 2000 Hz.", "หูขวา 3000 Hz.", "หูขวา 4000 Hz.", "หูขวา 6000 Hz.", "หูขวา 8000 Hz.", "สรุปการตรวจหู", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "BMI": ["HN", "ชื่อ-นามสกุล", "รหัสพนักงาน", "Department",  "อายุ","น้ำหนัก", "ส่วนสูง", "ดัชนีมวลกาย", "ความดันโลหิตบน", "ความดันโลหิตตัวล่าง", "ชีพจร", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "XRay": ["HN", "ชื่อ-นามสกุล","รหัสพนักงาน", "Department",  "อายุ", "เอกซเรย์ดิจิตอล", "สรุปผลการตรวจ เอกซเรย์", "แพทย์ผู้อ่านผลเอกซ์เรย์ปอด", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Urine": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "อายุ","Bilirubin", "SP.GR.", "Leukocyte", "Urobilinogen", "Nitrite", "COLOR", "APPEAR", "BLOOD(URINE)", "KETONE(URINE)", "GLUCOSE(URINE)", "PROTEIN(URINE)", "pH(URINE)", "RBC(URINE)", "WBC(URINE)", "EPITHELIUM CELL (URINE)", "BACTERIA(URINE)", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "CBC": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "อายุ","WBC count", "RBC count", "Hb", "Hct", "Plt count", "PLT smear", "Neutrophil", "Lymphocyte", "Monocyte", "Eosinophil", "Basophil", "Description", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "FBS": ["HN", "ชื่อ-นามสกุล", "Department", "รหัสพนักงาน",  "อายุ","results", "summary", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Chol": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "อายุ","Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "HDL": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "LDL": ["HN", "ชื่อ-นามสกุล","Department", "รหัสพนักงาน",  "อายุ", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Trigy": ["HN", "ชื่อ-นามสกุล", "Department", "รหัสพนักงาน",  "อายุ","Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "BUN": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน","อายุ", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Creatinin": ["HN", "ชื่อ-นามสกุล", "Department", "รหัสพนักงาน",  "อายุ","Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "eGFR": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "อายุ","Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "SGPT": ["HN", "ชื่อ-นามสกุล", "Department", "รหัสพนักงาน","อายุ",  "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "SGOT": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน","อายุ", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Alk": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน", "อายุ","Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Uric": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน","อายุ", "Results", "Summary", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "EKG": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน","อายุ", "ผลตรวจ", "สรุปผลการตรวจ", "แพทย์ผู้อ่านผล", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Audiogram": ["HN", "ชื่อ-นามสกุล","Department", "รหัสพนักงาน", "อายุ",  "หูซ้าย 500 Hz.", "หูซ้าย 1000 Hz.", "หูซ้าย 2000 Hz.", "หูซ้าย 3000 Hz.", "หูซ้าย 4000 Hz.", "หูซ้าย 6000 Hz.", "หูซ้าย 8000 Hz.", "หูขวา 500 Hz.", "หูขวา 1000 Hz.", "หูขวา 2000 Hz.", "หูขวา 3000 Hz.", "หูขวา 4000 Hz.", "หูขวา 6000 Hz.", "หูขวา 8000 Hz.", "สรุปการตรวจหู", "Customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
         "Eyes": ["HN", "ชื่อ-นามสกุล", "รหัสพนักงาน", "Department", "อายุ", "มองระยะใกล้", "มองระยะไกล", "มองภาพ3มิติ", "การแยกสี", "สมดุลกล้ามเนื้อตาแนวตั้ง", "สมดุลกล้ามเนื้อตาแนวนอน", "ลานสายตา", "สรุป", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
-        "Spirometry": ["HN", "ชื่อ-นามสกุล", "อายุ", "Department", "รหัสพนักงาน", "FVC", "FEV1", "FEV1/FVC", "result", "summary", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
+        "Spirometry": ["HN", "ชื่อ-นามสกุล",  "Department", "รหัสพนักงาน","อายุ", "FVC", "FEV1", "FEV1/FVC", "result", "summary", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
         "Muscle(L/B)": ["HN", "ชื่อ-นามสกุล", "รหัสพนักงาน", "Department", "อายุ", "เพศ", "น้ำหนัก", "หลัง/ค่าทดสอบ", "หลัง/ค่าแปรผล", "หลัง/ผลตรวจ", "หลัง/ระดับ", "ขา/ค่าทดสอบ", "ขา/ค่าแปรผล", "ขา/ผลตรวจ", "ขา/ระดับ", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
         "Muscle(H)": ["HN", "ชื่อ-นามสกุล", "รหัสพนักงาน", "Department", "อายุ", "เพศ", "น้ำหนัก", "ขวา/ค่าทดสอบ", "ขวา/ค่าแปรผล", "ขวา/ผลตรวจ", "ขวา/ระดับ", "ซ้าย/ค่าทดสอบ", "ซ้าย/ค่าแปรผล", "ซ้าย/ผลตรวจ", "ซ้าย/ระดับ", "customer", "ชั้นปี", "แผนก", "สาขา", "ห้อง"],
       };
@@ -278,18 +249,6 @@ export default function Home() {
         headers.forEach((_h, ci) => {
           const addr = XLSX.utils.encode_cell({ r: 0, c: ci });
           if (ws[addr]) ws[addr].s = headerStyle2;
-        });
-
-        // body: center ทุกคอลัมน์ ยกเว้นคอลัมน์ B (index 1)
-        data.forEach((row, ri) => {
-          if (ri === 0) return; // ข้าม header
-          row.forEach((_c, ci) => {
-            const addr = XLSX.utils.encode_cell({ r: ri, c: ci });
-            if (!ws[addr]) return;
-            ws[addr].s = ci === 1
-              ? { alignment: { horizontal: "left", vertical: "center" } }
-              : { alignment: { horizontal: "center", vertical: "center" } };
-          });
         });
 
         const safeName = sheetName.replace(/[/\?*[\]:]/g, "").slice(0, 31);
@@ -356,44 +315,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Logged-in user badge */}
-        {loggedInUser && (
-          <div style={{
-            display: "flex", alignItems: "center", gap: 8,
-            background: "linear-gradient(135deg, #e8f7fa, #f0fbfc)",
-            border: "1px solid #bee1e8", borderRadius: 10,
-            padding: "7px 10px", marginBottom: 8,
-          }}>
-            <div style={{
-              width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
-              background: "linear-gradient(135deg, #0c6075, #109cbe)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontWeight: 800, fontSize: "0.8rem",
-            }}>
-              {(loggedInUser.stuffName || loggedInUser.username).charAt(0).toUpperCase()}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "0.74rem", fontWeight: 700, color: "#0c6075", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {loggedInUser.stuffName || loggedInUser.username}
-              </div>
-              <div style={{ fontSize: "0.6rem", color: "#5a8a96", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                @{loggedInUser.username}
-              </div>
-            </div>
-            <button
-              onClick={() => setLoggedInUser(null)}
-              title="ออกจากระบบ"
-              style={{
-                width: 26, height: 26, borderRadius: 6, flexShrink: 0,
-                border: "1px solid #cfd9e5", background: "#fff", color: "#8a9baa",
-                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              }}
-            >
-              <LogOut size={13} />
-            </button>
-          </div>
-        )}
-
         <nav className="menu">
           <button
             className={`menu-item${activePage === "registration" ? " active" : ""}`}
@@ -401,27 +322,6 @@ export default function Home() {
           >
             <ClipboardPlus size={16} />
             <span>ลงทะเบียน</span>
-          </button>
-          <button
-            className="menu-item"
-            onClick={() => handleNav("specimen")}
-          >
-            <TestTube2 size={16} />
-            <span>นับสิ่งตรวจ</span>
-          </button>
-          <button
-            className="menu-item"
-            onClick={() => handleNav("personal")}
-          >
-            <User size={16} />
-            <span>Personal</span>
-          </button>
-          <button
-            className={`menu-item${activePage === "finance" ? " active" : ""}`}
-            onClick={() => handleNav("finance")}
-          >
-            <Banknote size={16} />
-            <span>การเงิน</span>
           </button>
 
           {/* Export button — ล่างสุดของ sidebar */}
@@ -459,27 +359,50 @@ export default function Home() {
 
             <p>{detailName ? ` · ${detailName}` : ""}</p>
           </div>
-          <div className="status-pill" style={{ color: statusOk ? "#087d86" : "#c63742", borderColor: statusOk ? "#bee1e8" : "#ffc3c7" }}
-          >
-            {statusMsg}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div className="status-pill" style={{ color: statusOk ? "#087d86" : "#c63742", borderColor: statusOk ? "#bee1e8" : "#ffc3c7" }}
+            >
+              {statusMsg}
+            </div>
+            <div className="settings-menu-wrap" ref={settingsMenuRef}>
+              <button
+                className="settings-gear-btn"
+                aria-label="ตั้งค่า"
+                onClick={() => setSettingsMenuOpen((v) => !v)}
+              >
+                <Settings size={18} />
+              </button>
+              {settingsMenuOpen && (
+                <div className="settings-dropdown">
+                  <button
+                    className="settings-dropdown-item"
+                    onClick={() => { setSettingsMenuOpen(false); handleNav("specimen"); }}
+                  >
+                    <TestTube2 size={16} />
+                    <span>นับสิ่งตรวจ</span>
+                  </button>
+                  <button
+                    className="settings-dropdown-item"
+                    onClick={() => { setSettingsMenuOpen(false); handleNav("personal"); }}
+                  >
+                    <User size={16} />
+                    <span>Personal</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
         {/* Registration Page */}
         <section className={`workspace page${activePage === "registration" ? " active" : ""}`} id="registrationPage">
-          <RegistrationPage onCountsUpdate={setCounts} onOpenPersonal={openPersonalByHn} />
+          <RegistrationPage onCountsUpdate={setCounts} onOpenPersonal={openPersonalByHn} detailName={detailName} />
         </section>
 
         {/* Report Page */}
         <section className={`workspace page${activePage === "report" ? " active" : ""}`} id="reportPage"
           style={{ display: activePage === "report" ? "block" : "none", flex: 1, minHeight: 0 }}>
           <ReportPage />
-        </section>
-
-        {/* Finance Page */}
-        <section className={`workspace page${activePage === "finance" ? " active" : ""}`} id="financePage"
-          style={{ display: activePage === "finance" ? "block" : "none", flex: 1, minHeight: 0 }}>
-          <FinancePage orgName={detailName} staffName={loggedInUser?.stuffName || ""} />
         </section>
       </main>
 
@@ -488,10 +411,6 @@ export default function Home() {
         open={personalOpen}
         initialHn={personalHn}
         onClose={() => setPersonalOpen(false)}
-        onGoFinance={() => {
-          setPersonalOpen(false);
-          setActivePage("finance");
-        }}
       />
 
       {/* Specimen Modal */}
@@ -499,12 +418,6 @@ export default function Home() {
         open={specimenOpen}
         onClose={() => setSpecimenOpen(false)}
         onCountsUpdate={setCounts}
-      />
-
-      {/* Login Modal — แสดงทุกครั้งที่เปิดโปรแกรม จนกว่าจะ login สำเร็จ */}
-      <LoginModal
-        open={!loggedInUser}
-        onSuccess={(user) => setLoggedInUser(user)}
       />
     </>
   );
