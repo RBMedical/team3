@@ -2,16 +2,18 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import {
-  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Settings,
+  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Settings, Banknote,
 } from "lucide-react";
 import { RegistrationPage } from "@/components/RegistrationPage";
 import { appScriptRequest } from "@/lib/api";
 import { ReportPage } from "@/components/ReportPage";
+import { FinancePage } from "@/components/FinancePage";
 import { SpecimenModal } from "@/components/SpecimenModal";
 import { PersonalDetailModal } from "@/components/PersonalDetailModal";
+import { LoginModal, type LoggedInUser } from "@/components/LoginModal";
 import { useToast } from "@/hooks/use-toast";
 
-type Page = "registration" | "report";
+type Page = "registration" | "report" | "finance";
 
 export default function Home() {
   const { toast } = useToast();
@@ -25,6 +27,8 @@ export default function Home() {
   const [detailName, setDetailName] = useState("");
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const settingsMenuRef = useRef<HTMLDivElement>(null);
+  const [loggedInUser, setLoggedInUser] = useState<LoggedInUser | null>(null);
+  const [financeLoginOpen, setFinanceLoginOpen] = useState(false);
 
   const [exporting, setExporting] = useState(false);
 
@@ -291,9 +295,19 @@ export default function Home() {
     } else if (page === "personal") {
       // เปิด Personal โดยใช้ HN จาก search ถ้ามี
       setPersonalOpen(true);
+    } else if (page === "finance") {
+      // ต้องเข้าสู่ระบบก่อนถึงจะเข้าหน้าการเงินได้
+      if (loggedInUser) setActivePage("finance");
+      else setFinanceLoginOpen(true);
     } else {
       setActivePage(page as Page);
     }
+  }
+
+  function handleFinanceLoginSuccess(user: LoggedInUser) {
+    setLoggedInUser(user);
+    setFinanceLoginOpen(false);
+    setActivePage("finance");
   }
 
   function openPersonalByHn(hn: string) {
@@ -322,6 +336,13 @@ export default function Home() {
           >
             <ClipboardPlus size={16} />
             <span>ลงทะเบียน</span>
+          </button>
+          <button
+            className={`menu-item${activePage === "finance" ? " active" : ""}`}
+            onClick={() => handleNav("finance")}
+          >
+            <Banknote size={16} />
+            <span>การเงิน</span>
           </button>
 
           {/* Export button — ล่างสุดของ sidebar */}
@@ -404,6 +425,12 @@ export default function Home() {
           style={{ display: activePage === "report" ? "block" : "none", flex: 1, minHeight: 0 }}>
           <ReportPage />
         </section>
+
+        {/* Finance Page */}
+        <section className={`workspace page${activePage === "finance" ? " active" : ""}`} id="financePage"
+          style={{ display: activePage === "finance" ? "block" : "none", flex: 1, minHeight: 0 }}>
+          <FinancePage orgName={detailName} staffName={loggedInUser?.stuffName || ""} />
+        </section>
       </main>
 
       {/* Personal Detail Modal */}
@@ -418,6 +445,12 @@ export default function Home() {
         open={specimenOpen}
         onClose={() => setSpecimenOpen(false)}
         onCountsUpdate={setCounts}
+      />
+
+      {/* Login gate — ต้อง login ก่อนเข้าหน้าการเงิน */}
+      <LoginModal
+        open={financeLoginOpen}
+        onSuccess={handleFinanceLoginSuccess}
       />
     </>
   );
