@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import {
-  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Settings, Banknote,
+  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Settings, Banknote, ClipboardList,
 } from "lucide-react";
 import { RegistrationPage } from "@/components/RegistrationPage";
 import { appScriptRequest } from "@/lib/api";
@@ -10,6 +10,7 @@ import { ReportPage } from "@/components/ReportPage";
 import { FinancePage } from "@/components/FinancePage";
 import { SpecimenModal } from "@/components/SpecimenModal";
 import { PersonalDetailModal } from "@/components/PersonalDetailModal";
+import { ProgramModal } from "@/components/ProgramModal";
 import { LoginModal, type LoggedInUser } from "@/components/LoginModal";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,6 +21,7 @@ export default function Home() {
   const [activePage, setActivePage] = useState<Page>("registration");
   const [specimenOpen, setSpecimenOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
+  const [programOpen, setProgramOpen] = useState(false);
   const [personalHn, setPersonalHn] = useState("");
   const [statusMsg, setStatusMsg] = useState("พร้อมใช้งาน");
   const [statusOk, setStatusOk] = useState(true);
@@ -295,6 +297,8 @@ export default function Home() {
     } else if (page === "personal") {
       // เปิด Personal โดยใช้ HN จาก search ถ้ามี
       setPersonalOpen(true);
+    } else if (page === "program") {
+      setProgramOpen(true);
     } else if (page === "finance") {
       // ต้องเข้าสู่ระบบก่อนถึงจะเข้าหน้าการเงินได้
       if (loggedInUser) setActivePage("finance");
@@ -409,6 +413,13 @@ export default function Home() {
                     <User size={16} />
                     <span>Personal</span>
                   </button>
+                  <button
+                    className="settings-dropdown-item"
+                    onClick={() => { setSettingsMenuOpen(false); handleNav("program"); }}
+                  >
+                    <ClipboardList size={16} />
+                    <span>โปรแกรมตรวจ</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -445,6 +456,12 @@ export default function Home() {
         open={specimenOpen}
         onClose={() => setSpecimenOpen(false)}
         onCountsUpdate={setCounts}
+      />
+
+      {/* Program Modal — โปรแกรมตรวจ */}
+      <ProgramModal
+        open={programOpen}
+        onClose={() => setProgramOpen(false)}
       />
 
       {/* Login gate — ต้อง login ก่อนเข้าหน้าการเงิน */}
