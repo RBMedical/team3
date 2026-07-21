@@ -1654,6 +1654,24 @@ button.add-new:hover {
   color: #fff;
 }
 
+.program-name-input {
+  margin-left: 8px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  font-size: calc(var(--fs-base) - 1px);
+  font-weight: 600;
+  color: var(--ink);
+  outline: none;
+  min-width: 200px;
+}
+
+.program-name-input::placeholder {
+  color: #93a3b0;
+  font-weight: 500;
+}
+
 .program-save-btn {
   width: 26px;
   height: 26px;
