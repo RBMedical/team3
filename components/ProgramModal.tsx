@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ClipboardList, X, Plus, Pencil } from "lucide-react";
 import { appScriptRequest } from "@/lib/api";
+import { ProgramEditModal } from "@/components/ProgramEditModal";
 import type { ProgramListResponse, ProgramGroup } from "@/types";
 
 interface ProgramModalProps {
@@ -14,6 +15,7 @@ export function ProgramModal({ open, onClose }: ProgramModalProps) {
   const [programs, setPrograms] = useState<ProgramGroup[]>([]);
   const [selected, setSelected] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editProgram, setEditProgram] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -72,8 +74,8 @@ export function ProgramModal({ open, onClose }: ProgramModalProps) {
                     <span>{p.program}</span>
                     <button
                       className="program-edit-btn"
-                      title="แก้ไข (เร็วๆ นี้)"
-                      onClick={(e) => e.stopPropagation()}
+                      title="แก้ไข"
+                      onClick={(e) => { e.stopPropagation(); setEditProgram(p.program); }}
                     >
                       <Pencil size={13} />
                     </button>
@@ -94,6 +96,13 @@ export function ProgramModal({ open, onClose }: ProgramModalProps) {
           )}
         </div>
       </div>
+
+      <ProgramEditModal
+        open={!!editProgram}
+        program={editProgram || ""}
+        onClose={() => setEditProgram(null)}
+        onSaved={() => { setEditProgram(null); loadPrograms(); }}
+      />
     </div>
   );
 }
