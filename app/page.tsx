@@ -30,7 +30,6 @@ export default function Home() {
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const settingsMenuRef = useRef<HTMLDivElement>(null);
   const [loggedInUser, setLoggedInUser] = useState<LoggedInUser | null>(null);
-  const [financeLoginOpen, setFinanceLoginOpen] = useState(false);
 
   const [exporting, setExporting] = useState(false);
 
@@ -299,24 +298,23 @@ export default function Home() {
       setPersonalOpen(true);
     } else if (page === "program") {
       setProgramOpen(true);
-    } else if (page === "finance") {
-      // ต้องเข้าสู่ระบบก่อนถึงจะเข้าหน้าการเงินได้
-      if (loggedInUser) setActivePage("finance");
-      else setFinanceLoginOpen(true);
     } else {
       setActivePage(page as Page);
     }
   }
 
-  function handleFinanceLoginSuccess(user: LoggedInUser) {
+  function handleLoginSuccess(user: LoggedInUser) {
     setLoggedInUser(user);
-    setFinanceLoginOpen(false);
-    setActivePage("finance");
   }
 
   function openPersonalByHn(hn: string) {
     setPersonalHn(hn);
     setPersonalOpen(true);
+  }
+
+  // ── ต้อง login ก่อนถึงจะเข้าใช้งานโปรแกรมได้ ──────────────
+  if (!loggedInUser) {
+    return <LoginModal open={true} onSuccess={handleLoginSuccess} />;
   }
 
   return (
@@ -462,12 +460,6 @@ export default function Home() {
       <ProgramModal
         open={programOpen}
         onClose={() => setProgramOpen(false)}
-      />
-
-      {/* Login gate — ต้อง login ก่อนเข้าหน้าการเงิน */}
-      <LoginModal
-        open={financeLoginOpen}
-        onSuccess={handleFinanceLoginSuccess}
       />
     </>
   );
