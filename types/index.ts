@@ -98,3 +98,12 @@ export type FollowDataResponse = AppScriptResponse<{
   headers: string[];
   rows: FollowRow[];
 }>;
+
+export interface ProgramGroup {
+  program: string;
+  items: string[];
+}
+
+export type ProgramListResponse = AppScriptResponse<{
+  programs: ProgramGroup[];
+}>;
