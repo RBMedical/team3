@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import {
-  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Settings, Banknote, ClipboardList,
+  Cross, ClipboardPlus, TestTube2, ChartNoAxesCombined, Activity, Hospital, User, Download, Settings, Banknote, ClipboardList, LogOut,
 } from "lucide-react";
 import { RegistrationPage } from "@/components/RegistrationPage";
 import { appScriptRequest } from "@/lib/api";
@@ -307,6 +307,11 @@ export default function Home() {
     setLoggedInUser(user);
   }
 
+  function handleLogout() {
+    setLoggedInUser(null);
+    setActivePage("registration");
+  }
+
   function openPersonalByHn(hn: string) {
     setPersonalHn(hn);
     setPersonalOpen(true);
@@ -371,6 +376,19 @@ export default function Home() {
         <div className="sidebar-art">
           <Activity size={32} />
           <Hospital size={32} />
+        </div>
+
+        <div className="sidebar-user">
+          <div className="sidebar-user-avatar">
+            <User size={16} />
+          </div>
+          <div className="sidebar-user-info">
+            <span className="sidebar-user-name">{loggedInUser.stuffName || loggedInUser.username}</span>
+            <span className="sidebar-user-role">{loggedInUser.username}</span>
+          </div>
+          <button className="sidebar-logout-btn" title="ออกจากระบบ" onClick={handleLogout}>
+            <LogOut size={15} />
+          </button>
         </div>
       </aside>
 
