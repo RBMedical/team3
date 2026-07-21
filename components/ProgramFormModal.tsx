@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Save, X, Trash2 } from "lucide-react";
+import { Save, X, Trash2, Search } from "lucide-react";
 import { appScriptRequest } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import type { TestSheetRowsResponse, ProgramItemsDetailResponse, TestSheetRow, ProgramItemDetail } from "@/types";
 
 interface ProgramFormModalProps {
@@ -20,15 +21,20 @@ export function ProgramFormModal({ open, mode, program = "", onClose, onSaved }:
   const [currentItems, setCurrentItems] = useState<ProgramItemDetail[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (open) {
       setProgramName(mode === "edit" ? program : "");
+      setSearchQuery("");
       loadData();
     } else {
       setTestRows([]);
       setCurrentItems([]);
       setProgramName("");
+      setSearchQuery("");
     }
   }, [open, mode, program]);
 
@@ -88,9 +94,32 @@ export function ProgramFormModal({ open, mode, program = "", onClose, onSaved }:
     }
   }
 
+  async function handleDeleteProgram() {
+    setDeleting(true);
+    try {
+      const res = await appScriptRequest<{ ok: boolean; message?: string }>({
+        action: "saveProgramItems",
+        program,
+        items: JSON.stringify([]),
+      });
+      if (!res.ok) {
+        toast({ title: res.message || "ลบไม่สำเร็จ", variant: "destructive" });
+        return;
+      }
+      toast({ title: "ลบโปรแกรมตรวจเรียบร้อย", variant: "success" });
+      onSaved();
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmOpen(false);
+    }
+  }
+
   if (!open) return null;
 
   const saveDisabled = saving || (mode === "add" && !programName.trim());
+  const filteredTestRows = testRows.filter((row) =>
+    row.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
 
   return (
     <div className="modal-backdrop open" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -138,21 +167,56 @@ export function ProgramFormModal({ open, mode, program = "", onClose, onSaved }:
                 )}
               </div>
 
-              <div className="program-edit-source">
-                {testRows.length === 0 ? (
-                  <div className="program-empty">ไม่พบข้อมูลใน sheet Test</div>
-                ) : (
-                  testRows.map((row, i) => (
-                    <button className="program-edit-source-item" key={i} onClick={() => addItem(row)}>
-                      {row.name}
-                    </button>
-                  ))
-                )}
+              <div className="program-edit-source-wrap">
+                <div className="program-edit-search">
+                  <Search size={14} />
+                  <input
+                    placeholder="ค้นหารายการตรวจ..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="program-edit-source">
+                  {testRows.length === 0 ? (
+                    <div className="program-empty">ไม่พบข้อมูลใน sheet Test</div>
+                  ) : filteredTestRows.length === 0 ? (
+                    <div className="program-empty">ไม่พบรายการที่ค้นหา</div>
+                  ) : (
+                    filteredTestRows.map((row, i) => (
+                      <button className="program-edit-source-item" key={i} onClick={() => addItem(row)}>
+                        {row.name}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           )}
         </div>
+
+        {mode === "edit" && (
+          <div className="modal-footer program-edit-footer">
+            <button
+              className="program-delete-btn"
+              onClick={() => setDeleteConfirmOpen(true)}
+              disabled={deleting}
+            >
+              <Trash2 size={14} />ลบโปรแกรมตรวจนี้
+            </button>
+          </div>
+        )}
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title={`ยืนยันการลบโปรแกรม "${program}"`}
+        description="รายการตรวจทั้งหมดของโปรแกรมนี้จะถูกลบออกจาก sheet ProgramDetail"
+        confirmText="ลบ"
+        cancelText="ยกเลิก"
+        variant="destructive"
+        onConfirm={handleDeleteProgram}
+        onCancel={() => setDeleteConfirmOpen(false)}
+      />
     </div>
   );
 }
