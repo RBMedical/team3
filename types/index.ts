@@ -107,3 +107,27 @@ export interface ProgramGroup {
 export type ProgramListResponse = AppScriptResponse<{
   programs: ProgramGroup[];
 }>;
+
+export interface TestSheetRow {
+  testCode: string;
+  name: string;
+  method: string;
+  specimenCode: string;
+  station: string;
+  price: string;
+}
+
+export type TestSheetRowsResponse = AppScriptResponse<{
+  rows: TestSheetRow[];
+}>;
+
+export interface ProgramItemDetail {
+  name: string;
+  method: string;
+  specimenCode: string;
+  station: string;
+}
+
+export type ProgramItemsDetailResponse = AppScriptResponse<{
+  items: ProgramItemDetail[];
+}>;
