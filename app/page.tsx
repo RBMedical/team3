@@ -352,7 +352,6 @@ export default function Home() {
             <span>การเงิน</span>
           </button>
 
-          {/* Export button — ล่างสุดของ sidebar */}
           <div style={{ flex: 1 }} />
 
           <button
@@ -361,15 +360,6 @@ export default function Home() {
           >
             <ChartNoAxesCombined size={16} />
             <span>รายงาน/ติดตาม</span>
-          </button>
-          <button
-            className="menu-item"
-            onClick={handleExportExcel}
-            disabled={exporting}
-            style={{ opacity: exporting ? 0.6 : 1, borderTop: "1px solid var(--line)", marginTop: 4 }}
-          >
-            <Download size={16} />
-            <span>{exporting ? "กำลัง Export..." : "Export Excel"}</span>
           </button>
         </nav>
 
@@ -435,6 +425,14 @@ export default function Home() {
                   >
                     <ClipboardList size={16} />
                     <span>โปรแกรมตรวจ</span>
+                  </button>
+                  <button
+                    className="settings-dropdown-item"
+                    onClick={() => { setSettingsMenuOpen(false); handleExportExcel(); }}
+                    disabled={exporting}
+                  >
+                    <Download size={16} />
+                    <span>{exporting ? "กำลัง Export..." : "Export Excel"}</span>
                   </button>
                 </div>
               )}

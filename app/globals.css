@@ -467,6 +467,16 @@
   color: var(--teal-dark);
 }
 
+.settings-dropdown-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-dropdown-item:disabled:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
 .settings-dropdown-item svg {
   flex-shrink: 0;
   color: var(--muted-color);
