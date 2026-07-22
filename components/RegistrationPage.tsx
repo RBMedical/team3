@@ -318,6 +318,7 @@ export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = 
 
   const formValue = (key: keyof EmployeeRow) => (currentRow ? String(currentRow[key] ?? "") : "");
   const readonlyFields: (keyof EmployeeRow)[] = ["ลำดับลงทะเบียน","วันที่ลงทะเบียน","เวลาลงทะเบียน"];
+  const isRegistered = !!currentRow && String(currentRow["ลำดับลงทะเบียน"] ?? "").trim() !== "";
 
   function makeStickerHTML(item: StickerItem): string {
     const barcodeValue = item.barcode || "";
@@ -536,8 +537,15 @@ ${stickerHTML}
           </button>
           <button
             className="success"
-            style={{ flex: 1, justifyContent: "center", whiteSpace: "nowrap" }}
-            onClick={handleRegister}>
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              whiteSpace: "nowrap",
+              opacity: isRegistered ? 0.5 : 1,
+              cursor: isRegistered ? "not-allowed" : "pointer",
+            }}
+            onClick={handleRegister}
+            disabled={isRegistered}>
             <UserCheck size={14} />ลงทะเบียน
           </button>
         </div>
