@@ -30,8 +30,19 @@ export default function Home() {
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const settingsMenuRef = useRef<HTMLDivElement>(null);
   const [loggedInUser, setLoggedInUser] = useState<LoggedInUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const [exporting, setExporting] = useState(false);
+
+  // ── กู้สถานะ login จาก sessionStorage กัน state หายเวลาหน้าโหลดใหม่ ──
+  // (เช่น ตอนสั่งพิมพ์สติกเกอร์ที่บาง browser/WebView2 รีเฟรชหน้าเอง)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("loggedInUser");
+      if (raw) setLoggedInUser(JSON.parse(raw));
+    } catch {}
+    setAuthChecked(true);
+  }, []);
 
   // ── ปิด settings menu เมื่อคลิกนอกกรอบ ──────────────────────
   useEffect(() => {
@@ -305,10 +316,12 @@ export default function Home() {
 
   function handleLoginSuccess(user: LoggedInUser) {
     setLoggedInUser(user);
+    try { sessionStorage.setItem("loggedInUser", JSON.stringify(user)); } catch {}
   }
 
   function handleLogout() {
     setLoggedInUser(null);
+    try { sessionStorage.removeItem("loggedInUser"); } catch {}
     setActivePage("registration");
   }
 
@@ -318,6 +331,10 @@ export default function Home() {
   }
 
   // ── ต้อง login ก่อนถึงจะเข้าใช้งานโปรแกรมได้ ──────────────
+  // รอเช็ค sessionStorage ก่อน (authChecked) กัน login modal กระพริบตอนที่จริงยัง login ค้างอยู่
+  if (!authChecked) {
+    return null;
+  }
   if (!loggedInUser) {
     return <LoginModal open={true} onSuccess={handleLoginSuccess} />;
   }
