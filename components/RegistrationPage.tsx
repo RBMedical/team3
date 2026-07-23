@@ -50,6 +50,8 @@ export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = 
   const [status, setStatus] = useState<{ msg: string; ok: boolean }>({ msg: "พร้อมใช้งาน", ok: true });
   const [registerCount, setRegisterCount] = useState(0);
   const [addNewCount, setAddNewCount] = useState(0);
+  const [todayCount, setTodayCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [counts, setCounts] = useState<Record<string, number>>({});
 
   // Dialog states
@@ -79,6 +81,8 @@ export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = 
       setQueueRows(result.rows || []);
       setRegisterCount(result.count || 0);
       setAddNewCount(result.addNewCount || 0);
+      setTodayCount(result.todayCount || 0);
+      setTotalCount(result.totalCount || 0);
     } catch {}
   }, []);
 
@@ -555,12 +559,20 @@ ${stickerHTML}
         <div className="container-follow">
           <div className="follow-summary-grid">
             <div className="follow-summary-card">
-              <span className="fsc-label">ลงทะเบียน</span>
-              <input readOnly value={registerCount} />
+              <span className="fsc-label">รายชื่อ</span>
+              <input readOnly value={totalCount} />
             </div>
             <div className="follow-summary-card">
               <span className="fsc-label">เพิ่มชื่อ</span>
               <input readOnly value={addNewCount} />
+            </div>
+            <div className="follow-summary-card">
+              <span className="fsc-label">ลงทะเบียน</span>
+              <input readOnly value={registerCount} />
+            </div>
+            <div className="follow-summary-card">
+              <span className="fsc-label">ลงทะเบียนวันนี้</span>
+              <input readOnly value={todayCount} />
             </div>
           </div>
         </div>
