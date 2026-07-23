@@ -459,7 +459,7 @@ export default function Home() {
 
         {/* Registration Page */}
         <section className={`workspace page${activePage === "registration" ? " active" : ""}`} id="registrationPage">
-          <RegistrationPage onCountsUpdate={setCounts} onOpenPersonal={openPersonalByHn} detailName={detailName} />
+          <RegistrationPage onCountsUpdate={setCounts} onOpenPersonal={openPersonalByHn} detailName={detailName} staffName={loggedInUser?.stuffName || ""} />
         </section>
 
         {/* Report Page */}
@@ -480,6 +480,7 @@ export default function Home() {
         open={personalOpen}
         initialHn={personalHn}
         onClose={() => setPersonalOpen(false)}
+        staffName={loggedInUser?.stuffName || ""}
       />
 
       {/* Specimen Modal */}
@@ -487,12 +488,14 @@ export default function Home() {
         open={specimenOpen}
         onClose={() => setSpecimenOpen(false)}
         onCountsUpdate={setCounts}
+        staffName={loggedInUser?.stuffName || ""}
       />
 
       {/* Program Modal — โปรแกรมตรวจ */}
       <ProgramModal
         open={programOpen}
         onClose={() => setProgramOpen(false)}
+        staffName={loggedInUser?.stuffName || ""}
       />
     </>
   );
