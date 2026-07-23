@@ -869,7 +869,7 @@ button.add-new:hover {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 6px var(--cnt-px);
+  padding: 4px var(--cnt-px);
   overflow: hidden;
 }
 
@@ -881,20 +881,20 @@ button.add-new:hover {
   padding: 6px var(--cnt-px);
 }
 
-/* Follow row — 2 summary cards side by side */
+/* Follow row — 4 summary cards, 2x2 grid */
 .follow-summary-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 4px;
 }
 
 .follow-summary-card {
   display: flex;
   align-items: center;
   border: 1px solid #c8d8e4;
-  border-radius: 6px;
+  border-radius: 5px;
   overflow: hidden;
-  height: 30px;
+  height: 22px;
 }
 
 .follow-summary-card .fsc-label {
@@ -903,16 +903,14 @@ button.add-new:hover {
   justify-content: center;
   background: #4a7c8e;
   color: #fff;
-  font-size: var(--cnt-fs);
+  font-size: 0.58rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  padding: 0 6px;
+  letter-spacing: 0;
+  padding: 0 4px;
   height: 100%;
   white-space: nowrap;
   border-right: 1px solid rgba(255,255,255,0.15);
   flex-shrink: 0;
-  width: 90px;
   text-align: center;
 }
 
@@ -920,8 +918,8 @@ button.add-new:hover {
   flex: 1;
   height: 100%;
   border: none;
-  padding: 0 6px;
-  font-size: var(--cnt-fs);
+  padding: 0 4px;
+  font-size: 0.62rem;
   font-weight: 700;
   text-align: center;
   background: #f5f8fb;
