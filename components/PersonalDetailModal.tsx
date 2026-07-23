@@ -49,12 +49,13 @@ interface TestNameItem {
 interface Props {
   open: boolean;
   initialHn?: string;
+  staffName?: string;
   onClose: () => void;
   onGoFinance?: () => void;
 }
 
 /* ─── Component ──────────────────────────────────────────── */
-export function PersonalDetailModal({ open, initialHn = "", onClose, onGoFinance }: Props) {
+export function PersonalDetailModal({ open, initialHn = "", staffName = "", onClose, onGoFinance }: Props) {
   const [query, setQuery]           = useState(initialHn);
   const [loading, setLoading]       = useState(false);
   const [result, setResult]         = useState<PersonalDetailResult | null>(null);
@@ -139,6 +140,7 @@ export function PersonalDetailModal({ open, initialHn = "", onClose, onGoFinance
         hn: data.HN,
         name: data["ชื่อ นามสกุล"],
         items: JSON.stringify(itemsWithPrice),
+        staffName,
       });
       if (res.ok) {
         setSaveMsg("บันทึกสำเร็จ ✓");

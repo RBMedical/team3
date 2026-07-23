@@ -8,6 +8,7 @@ import type { AppScriptResponse, EmployeeRow } from "@/types";
 interface EditModalProps {
   open: boolean;
   currentRow: EmployeeRow | null;
+  staffName?: string;
   onClose: () => void;
   onSuccess: (row: EmployeeRow) => void;
 }
@@ -28,7 +29,7 @@ const editFields = [
 
 type EditField = (typeof editFields)[number];
 
-export function EditModal({ open, currentRow, onClose, onSuccess }: EditModalProps) {
+export function EditModal({ open, currentRow, staffName = "", onClose, onSuccess }: EditModalProps) {
   const [values, setValues] = useState<Record<EditField, string>>(
     () => Object.fromEntries(editFields.map((f) => [f, ""])) as Record<EditField, string>
   );
@@ -57,7 +58,7 @@ export function EditModal({ open, currentRow, onClose, onSuccess }: EditModalPro
     setStatus({ msg: "กำลังบันทึก...", ok: true });
 
     try {
-      const payload: Record<string, string> = { action: "update", HN: hn };
+      const payload: Record<string, string> = { action: "update", HN: hn, staffName };
       editFields.forEach((f) => { payload[f] = values[f]; });
 
       const result = await appScriptRequest<AppScriptResponse<{ row: EmployeeRow }>>(payload);

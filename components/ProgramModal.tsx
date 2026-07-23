@@ -9,11 +9,12 @@ import type { ProgramListResponse, ProgramGroup } from "@/types";
 interface ProgramModalProps {
   open: boolean;
   onClose: () => void;
+  staffName?: string;
 }
 
 type FormState = { mode: "add" } | { mode: "edit"; program: string } | null;
 
-export function ProgramModal({ open, onClose }: ProgramModalProps) {
+export function ProgramModal({ open, onClose, staffName = "" }: ProgramModalProps) {
   const [programs, setPrograms] = useState<ProgramGroup[]>([]);
   const [selected, setSelected] = useState("");
   const [loading, setLoading] = useState(false);
@@ -103,6 +104,7 @@ export function ProgramModal({ open, onClose }: ProgramModalProps) {
         open={!!formState}
         mode={formState?.mode || "add"}
         program={formState?.mode === "edit" ? formState.program : ""}
+        staffName={staffName}
         onClose={() => setFormState(null)}
         onSaved={() => { setFormState(null); loadPrograms(); }}
       />

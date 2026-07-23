@@ -278,6 +278,7 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
           hn: payItem.hn,
           name: payItem.name,
           amount: payItem.amount,
+          staffName,
         });
         if (res.ok) {
           toast({ title: `ชำระเงินสำเร็จ · ใบเสร็จ ${res.receiptNo}`, variant: "success" });
@@ -406,6 +407,7 @@ export function FinancePage({ orgName = "", staffName = "" }: Props) {
         hn: cancelItem.hn,
         name: cancelItem.name,
         amount: cancelItem.amount,
+        staffName,
       });
       if (res.ok) {
         toast({ title: `ยกเลิกใบเสร็จ ${cancelItem.receiptNo} แล้ว`, variant: "success" });

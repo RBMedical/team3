@@ -37,9 +37,10 @@ interface Props {
   onCountsUpdate: (counts: Record<string, number>) => void;
   onOpenPersonal?: (hn: string) => void;
   detailName?: string;
+  staffName?: string;
 }
 
-export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = "" }: Props) {
+export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = "", staffName = "" }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<EmployeeRow[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -305,7 +306,7 @@ export function RegistrationPage({ onCountsUpdate, onOpenPersonal, detailName = 
     if (sequence) return setStatusMsg("รายชื่อนี้ลงทะเบียนไปแล้ว", false);
     setStatusMsg("กำลังลงทะเบียน...");
     try {
-      const result = await appScriptRequest<RegisterResponse>({ action: "register", rowId: currentRow.rowId }, "กำลังลงทะเบียน...");
+      const result = await appScriptRequest<RegisterResponse>({ action: "register", rowId: currentRow.rowId, staffName }, "กำลังลงทะเบียน...");
       if (!result.ok) return setStatusMsg(result.message || "ลงทะเบียนไม่สำเร็จ", false);
       fillForm(result.row, result.stickers || []);
       setStatusMsg("ลงทะเบียนและสร้างสติกเกอร์เรียบร้อย");
@@ -713,6 +714,7 @@ ${stickerHTML}
       <AddNewModal
         open={addNewModal}
         prefillCustomer={detailName}
+        staffName={staffName}
         onClose={() => setAddNewModal(false)}
         onSuccess={(name) => {
           setStatusMsg("เพิ่มรายชื่อเรียบร้อย");
@@ -725,6 +727,7 @@ ${stickerHTML}
       <EditModal
         open={editModal}
         currentRow={currentRow}
+        staffName={staffName}
         onClose={() => setEditModal(false)}
         onSuccess={(row) => {
           // preserve existing stickers when editing

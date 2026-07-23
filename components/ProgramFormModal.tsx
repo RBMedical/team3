@@ -11,11 +11,12 @@ interface ProgramFormModalProps {
   open: boolean;
   mode: "add" | "edit";
   program?: string;
+  staffName?: string;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export function ProgramFormModal({ open, mode, program = "", onClose, onSaved }: ProgramFormModalProps) {
+export function ProgramFormModal({ open, mode, program = "", staffName = "", onClose, onSaved }: ProgramFormModalProps) {
   const [programName, setProgramName] = useState("");
   const [testRows, setTestRows] = useState<TestSheetRow[]>([]);
   const [currentItems, setCurrentItems] = useState<ProgramItemDetail[]>([]);
@@ -82,6 +83,7 @@ export function ProgramFormModal({ open, mode, program = "", onClose, onSaved }:
         action: "saveProgramItems",
         program: finalProgramName,
         items: JSON.stringify(currentItems),
+        staffName,
       });
       if (!res.ok) {
         toast({ title: res.message || "บันทึกไม่สำเร็จ", variant: "destructive" });
@@ -101,6 +103,7 @@ export function ProgramFormModal({ open, mode, program = "", onClose, onSaved }:
         action: "saveProgramItems",
         program,
         items: JSON.stringify([]),
+        staffName,
       });
       if (!res.ok) {
         toast({ title: res.message || "ลบไม่สำเร็จ", variant: "destructive" });

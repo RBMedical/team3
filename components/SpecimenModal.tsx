@@ -17,9 +17,10 @@ interface SpecimenModalProps {
   open: boolean;
   onClose: () => void;
   onCountsUpdate: (counts: Record<string, number>) => void;
+  staffName?: string;
 }
 
-export function SpecimenModal({ open, onClose, onCountsUpdate }: SpecimenModalProps) {
+export function SpecimenModal({ open, onClose, onCountsUpdate, staffName = "" }: SpecimenModalProps) {
   const [testData, setTestData] = useState<SpecimenTestRow[]>([]);
   const [groupA, setGroupA] = useState("");
   const [groupB, setGroupB] = useState("");
@@ -375,6 +376,7 @@ export function SpecimenModal({ open, onClose, onCountsUpdate }: SpecimenModalPr
           hn6: row.hn,
           specimenType: row.specimenType,
           specimenGroup: row.specimenGroup,
+          staffName,
         });
         if (result.ok) {
           success++;

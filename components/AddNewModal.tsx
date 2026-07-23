@@ -8,6 +8,7 @@ import type { AppScriptResponse } from "@/types";
 interface AddNewModalProps {
   open: boolean;
   prefillCustomer?: string;
+  staffName?: string;
   onClose: () => void;
   onSuccess: (name: string) => void;
 }
@@ -31,6 +32,7 @@ type FormValues = Record<ModalField, string>;
 export function AddNewModal({
   open,
   prefillCustomer = "",
+  staffName = "",
   onClose,
   onSuccess,
 }: AddNewModalProps) {
@@ -90,6 +92,7 @@ export function AddNewModal({
         หมายเหตุ: "เพิ่มชื่อ",
         "วันที่ลงทะเบียน": dateStr,
         เวลาลงทะเบียน: timeStr,
+        staffName,
       });
 
       if (!result.ok) {
