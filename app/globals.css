@@ -1059,6 +1059,7 @@ button.add-new:hover {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   border: 1px dashed var(--line);
   border-radius: 8px;
   background: var(--soft);
