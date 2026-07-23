@@ -82,6 +82,7 @@ export type QueueResponse = AppScriptResponse<{
   count: number;
   addNewCount: number;
   todayCount: number;
+  totalCount: number;
 }>;
 
 export type SpecimenDataResponse = AppScriptResponse<{
