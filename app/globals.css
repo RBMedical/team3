@@ -911,6 +911,7 @@ button.add-new:hover {
   white-space: nowrap;
   border-right: 1px solid rgba(255,255,255,0.15);
   flex-shrink: 0;
+  width: 68px;
   text-align: center;
 }
 
